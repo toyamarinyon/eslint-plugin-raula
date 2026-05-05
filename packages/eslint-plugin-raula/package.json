@@ -1,0 +1,76 @@
+{
+	"name": "eslint-plugin-raula",
+	"version": "0.0.3",
+	"description": "Opinionated ESLint rules and flat-config presets for Tailwind and Next.js app standards.",
+	"keywords": [
+		"eslint",
+		"eslintplugin",
+		"eslint-plugin",
+		"nextjs",
+		"tailwindcss",
+		"design-system"
+	],
+	"homepage": "https://github.com/toyamarinyon/eslint-plugin-raula/tree/main/packages/eslint-plugin-raula",
+	"bugs": {
+		"url": "https://github.com/toyamarinyon/eslint-plugin-raula/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/toyamarinyon/eslint-plugin-raula.git",
+		"directory": "packages/eslint-plugin-raula"
+	},
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"bin": {
+		"eslint-plugin-raula": "./bin/eslint-plugin-raula.js"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		},
+		"./tailwind": {
+			"types": "./dist/tailwind.d.ts",
+			"import": "./dist/tailwind.js",
+			"default": "./dist/tailwind.js"
+		},
+		"./next-layout": {
+			"types": "./dist/next-layout.d.ts",
+			"import": "./dist/next-layout.js",
+			"default": "./dist/next-layout.js"
+		},
+		"./css": {
+			"types": "./dist/css.d.ts",
+			"import": "./dist/css.js",
+			"default": "./dist/css.js"
+		}
+	},
+	"files": [
+		"dist",
+		"REFERENCE.md",
+		"references",
+		"bin"
+	],
+	"sideEffects": false,
+	"scripts": {
+		"generate-reference": "bun run scripts/generate-reference.ts",
+		"build": "bun run generate-reference && tsup",
+		"prepublishOnly": "bun run build"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"peerDependencies": {
+		"eslint": "^9"
+	},
+	"dependencies": {
+		"@eslint/css": "1.2.0",
+		"tailwindcss": "4.2.4"
+	},
+	"devDependencies": {
+		"tsup": "8.5.1",
+		"typescript": "^5.9.3"
+	}
+}
