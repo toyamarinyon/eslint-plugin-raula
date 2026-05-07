@@ -7,7 +7,7 @@
 
 ## Applicability
 
-- eslint-plugin-raula/css (app/globals.css)
+- eslint-plugin-raula/tailwind (app/globals.css)
 
 ## Summary
 

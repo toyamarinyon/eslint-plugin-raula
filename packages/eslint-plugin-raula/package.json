@@ -40,11 +40,6 @@
 			"types": "./dist/next-layout.d.ts",
 			"import": "./dist/next-layout.js",
 			"default": "./dist/next-layout.js"
-		},
-		"./css": {
-			"types": "./dist/css.d.ts",
-			"import": "./dist/css.js",
-			"default": "./dist/css.js"
 		}
 	},
 	"files": [

@@ -20,14 +20,12 @@ Import the presets you want in your ESLint flat config.
 
 ```js
 import { defineConfig } from "eslint/config";
-import raulaCss from "eslint-plugin-raula/css";
 import raulaNextLayout from "eslint-plugin-raula/next-layout";
 import raulaTailwind from "eslint-plugin-raula/tailwind";
 
 export default defineConfig([
 	...raulaTailwind,
 	...raulaNextLayout,
-	...raulaCss,
 ]);
 ```
 
@@ -59,21 +57,19 @@ Applies to `**/*.{js,jsx,ts,tsx}` and enables:
 - `raula/exhaustive-tailwind-classes`
 - `raula/no-inline-style-prop`
 
-### `eslint-plugin-raula/next-layout`
-
-Applies to `app/**/layout.{js,jsx,ts,tsx}` and enables:
-
-- `raula/no-await-in-layout`
-
-### `eslint-plugin-raula/css`
-
-Applies to `app/globals.css` and enables:
+It also applies to `app/globals.css` and enables:
 
 - `raula/exhaustive-tailwind-theme-tokens`
 - `raula/no-disallowed-global-class-selectors`
 - `raula/no-document-element-styles-in-css`
 
-This preset also configures ESLint's CSS language support for `app/globals.css`.
+This preset configures ESLint's CSS language support for `app/globals.css`.
+
+### `eslint-plugin-raula/next-layout`
+
+Applies to `app/**/layout.{js,jsx,ts,tsx}` and enables:
+
+- `raula/no-await-in-layout`
 
 ## Rules
 

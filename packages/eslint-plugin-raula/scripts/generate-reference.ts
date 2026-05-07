@@ -27,54 +27,89 @@ const presetFiles: Array<Omit<PresetMeta, "rules">> = [
 	{
 		name: "eslint-plugin-raula/tailwind",
 		file: path.join(packageRoot, "tailwind.ts"),
-		glob: "**/*.{js,jsx,ts,tsx}",
+		glob: "**/*.{js,jsx,ts,tsx}, app/globals.css",
 	},
 	{
 		name: "eslint-plugin-raula/next-layout",
 		file: path.join(packageRoot, "next-layout.ts"),
 		glob: "app/**/layout.{js,jsx,ts,tsx}",
 	},
-	{
-		name: "eslint-plugin-raula/css",
-		file: path.join(packageRoot, "css.ts"),
-		glob: "app/globals.css",
-	},
 ];
 
 const rulePattern = /"raula\/([^\"]+)"\s*:\s*"[^"]+"/g;
-const filesPattern = /files\s*:\s*\[(.*?)\]/s;
+const filesPattern = /files\s*:\s*\[(.*?)\]/gs;
+const configPattern =
+	/files\s*:\s*\[(.*?)\][\s\S]*?rules\s*:\s*{([\s\S]*?)\n\s*},\n\s*}/g;
 const literalPattern = /["'`]([^"'`]+)["'`]/g;
 
 function extractFiles(source: string) {
-	const match = source.match(filesPattern);
-	if (!match || !match[1]) {
-		return [];
+	const files = new Set<string>();
+	for (const match of source.matchAll(filesPattern)) {
+		if (!match[1]) {
+			continue;
+		}
+
+		for (const item of match[1].matchAll(literalPattern)) {
+			files.add(item[1]);
+		}
 	}
 
-	return [...match[1].matchAll(literalPattern)].map((item) => item[1]);
+	return [...files];
+}
+
+function extractRules(source: string) {
+	const rules = new Set<string>();
+	for (const match of source.matchAll(rulePattern)) {
+		rules.add(match[1]);
+	}
+
+	return [...rules].sort();
+}
+
+function extractConfigEntries(source: string) {
+	const entries: Array<{ files: string[]; rules: string[] }> = [];
+	for (const match of source.matchAll(configPattern)) {
+		const filesSource = match[1];
+		const rulesSource = match[2];
+		if (!filesSource || !rulesSource) {
+			continue;
+		}
+
+		entries.push({
+			files: [...filesSource.matchAll(literalPattern)].map((item) => item[1]),
+			rules: extractRules(rulesSource),
+		});
+	}
+
+	return entries;
 }
 
 async function buildPresetMeta() {
 	const withRules = await Promise.all(
 		presetFiles.map(async (preset) => {
 			const source = await fs.readFile(preset.file, "utf8");
-			const rules = new Set<string>();
-			for (const match of source.matchAll(rulePattern)) {
-				rules.add(match[1]);
+			const entries = extractConfigEntries(source);
+			if (entries.length > 0) {
+				return entries.map((entry) => ({
+					name: preset.name,
+					file: preset.file,
+					glob: entry.files.length > 0 ? entry.files.join(", ") : preset.glob,
+					rules: entry.rules,
+				}));
 			}
 
 			const sourceGlobs = extractFiles(source);
-			return {
+			return [{
 				name: preset.name,
 				file: preset.file,
 				glob: sourceGlobs.length > 0 ? sourceGlobs.join(", ") : preset.glob,
-				rules: [...rules].sort(),
-			};
+				rules: extractRules(source),
+			}];
 		}),
 	);
 
 	const map = new Map<string, PresetMeta[]>();
-	for (const preset of withRules) {
+	for (const preset of withRules.flat()) {
 		for (const rule of preset.rules) {
 			const list = map.get(rule) ?? [];
 			list.push(preset);
