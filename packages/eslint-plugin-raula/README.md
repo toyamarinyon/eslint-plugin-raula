@@ -4,11 +4,7 @@ Opinionated ESLint rules and flat-config presets for Tailwind and Next.js app st
 
 ## Install
 
-```bash
-npm install -D eslint eslint-plugin-raula
-```
-
-You can use your package manager of choice:
+Install ESLint and the plugin with your package manager:
 
 ```bash
 npm install -D eslint eslint-plugin-raula
@@ -17,11 +13,11 @@ yarn add -D eslint eslint-plugin-raula
 bun add -d eslint eslint-plugin-raula
 ```
 
-`eslint-plugin-raula` includes Tailwind CSS as a dependency for the Tailwind-aware rules, so you do not need to install Tailwind only for this plugin. Your app should still have its normal Tailwind setup when you enable the Tailwind preset.
+`eslint-plugin-raula` includes Tailwind CSS for its Tailwind-aware rules, so you do not need to install Tailwind just for this plugin. Your app should still have its usual Tailwind setup when you enable the Tailwind preset.
 
 ## Setup
 
-`eslint-plugin-raula` is designed for ESLint flat config. Create or update `eslint.config.mjs` in your project root and import the presets you want.
+`eslint-plugin-raula` is designed for ESLint flat config. Create or update `eslint.config.mjs` in your project root, then import the presets you want.
 
 ### Basic flat config
 
@@ -145,7 +141,7 @@ Applies to `app/**/layout.{js,jsx,ts,tsx}` and enables:
 
 ### `raula/exhaustive-tailwind-classes`
 
-Requires `className` values to stay within canonical Tailwind utilities and forbids arbitrary bracket syntax such as `w-[13px]`.
+Requires `className` values to use canonical Tailwind utilities and forbids arbitrary bracket syntax such as `w-[13px]`.
 
 Options:
 
@@ -157,7 +153,7 @@ Options:
 
 ### `raula/exhaustive-tailwind-theme-tokens`
 
-Requires CSS custom properties to be declared inside `@theme` blocks and to use supported Tailwind theme namespaces.
+Requires CSS custom properties to be declared inside `@theme` blocks and use supported Tailwind theme namespaces.
 
 Options:
 
@@ -198,11 +194,11 @@ Rule docs are generated from rule metadata and published as:
 - `./REFERENCE.md`
 - `./references/<rule-name>.md`
 
-Use the package references before editing styling, className usage, global CSS, or layout-related code.
+Read the package references before editing styling, `className` usage, global CSS, or layout-related code.
 
 ## CLI
 
-You can use the package CLI to inject the managed AGENTS reference block into the current repository:
+Use the package CLI to inject the managed AGENTS reference block into the current repository:
 
 ```bash
 npx eslint-plugin-raula instruct
