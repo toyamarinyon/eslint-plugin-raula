@@ -8,15 +8,22 @@ Opinionated ESLint rules and flat-config presets for Tailwind and Next.js app st
 npm install -D eslint eslint-plugin-raula
 ```
 
-If you use the Tailwind-related rules, install Tailwind CSS as well:
+You can use your package manager of choice:
 
 ```bash
-npm install -D tailwindcss
+npm install -D eslint eslint-plugin-raula
+pnpm add -D eslint eslint-plugin-raula
+yarn add -D eslint eslint-plugin-raula
+bun add -d eslint eslint-plugin-raula
 ```
 
-## Usage
+`eslint-plugin-raula` includes Tailwind CSS as a dependency for the Tailwind-aware rules, so you do not need to install Tailwind only for this plugin. Your app should still have its normal Tailwind setup when you enable the Tailwind preset.
 
-Import the presets you want in your ESLint flat config.
+## Setup
+
+`eslint-plugin-raula` is designed for ESLint flat config. Create or update `eslint.config.mjs` in your project root and import the presets you want.
+
+### Basic flat config
 
 ```js
 import { defineConfig } from "eslint/config";
@@ -28,6 +35,69 @@ export default defineConfig([
 	...raulaNextLayout,
 ]);
 ```
+
+Add a lint script if your project does not have one:
+
+```json
+{
+	"scripts": {
+		"lint": "eslint ."
+	}
+}
+```
+
+Then run ESLint:
+
+```bash
+npm run lint
+```
+
+### Next.js
+
+For a Next.js App Router project, install ESLint and the plugin:
+
+```bash
+npm install -D eslint eslint-plugin-raula
+```
+
+Then update `eslint.config.mjs`:
+
+```diff
+ import { defineConfig, globalIgnores } from "eslint/config";
+ import nextVitals from "eslint-config-next/core-web-vitals";
+ import nextTs from "eslint-config-next/typescript";
++import raulaNextLayout from "eslint-plugin-raula/next-layout";
++import raulaTailwind from "eslint-plugin-raula/tailwind";
+
+ const eslintConfig = defineConfig([
+ 	...nextVitals,
+ 	...nextTs,
++	...raulaTailwind,
++	...raulaNextLayout,
+ 	// Override default ignores of eslint-config-next.
+ 	globalIgnores([
+ 		// Default ignores of eslint-config-next:
+ 	]),
+ ]);
+```
+
+The Tailwind preset checks JSX/TSX class names and `app/globals.css`. The Next.js layout preset checks `app/**/layout.{js,jsx,ts,tsx}` and prevents `await` from blocking layout rendering.
+
+Run the linter from your app root:
+
+```bash
+npm run lint
+```
+
+For teams that use repository instructions, inject the managed reference block into `AGENTS.md` after installing the package:
+
+```bash
+npx eslint-plugin-raula instruct
+```
+
+The generated block points contributors and coding agents to the installed rule reference before they edit styling, JSX class names, global CSS, or Next.js layout files.
+
+## Usage
 
 You can also import the plugin directly and enable individual rules:
 
