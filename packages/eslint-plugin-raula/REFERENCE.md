@@ -12,6 +12,8 @@ Read this file before editing styling, JSX className usage, global CSS, or Next.
   - eslint-plugin-raula/tailwind (files: app/globals.css)
 - [raula/no-await-in-layout](./references/no-await-in-layout.md) — Disallow `await` in `app/**/layout.*` files.
   - eslint-plugin-raula/next-layout (files: app/**/layout.{js,jsx,ts,tsx})
+- [raula/no-css-modules](./references/no-css-modules.md) — Disallow stylesheet filenames ending in `*.module.css`.
+  - eslint-plugin-raula/tailwind (files: **/*.module.css)
 - [raula/no-disallowed-global-class-selectors](./references/no-disallowed-global-class-selectors.md) — Disallow new global class selectors unless explicitly allowlisted.
   - eslint-plugin-raula/tailwind (files: app/globals.css)
 - [raula/no-document-element-styles-in-css](./references/no-document-element-styles-in-css.md) — Disallow styling `html` and `body` directly in CSS and prefer safer ownership.

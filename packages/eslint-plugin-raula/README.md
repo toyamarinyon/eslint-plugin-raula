@@ -77,7 +77,7 @@ Then update `eslint.config.mjs`:
  ]);
 ```
 
-The Tailwind preset checks JSX/TSX class names and `app/globals.css`. The Next.js layout preset checks `app/**/layout.{js,jsx,ts,tsx}` and prevents `await` from blocking layout rendering.
+The Tailwind preset checks JSX/TSX class names, `app/globals.css`, and `**/*.module.css`. The Next.js layout preset checks `app/**/layout.{js,jsx,ts,tsx}` and prevents `await` from blocking layout rendering.
 
 Run the linter from your app root:
 
@@ -129,7 +129,11 @@ It also applies to `app/globals.css` and enables:
 - `raula/no-disallowed-global-class-selectors`
 - `raula/no-document-element-styles-in-css`
 
-This preset configures ESLint's CSS language support for `app/globals.css`.
+It also applies to `**/*.module.css` and enables:
+
+- `raula/no-css-modules`
+
+This preset configures ESLint's CSS language support for `app/globals.css` and `**/*.module.css`.
 
 ### `eslint-plugin-raula/next-layout`
 
@@ -186,6 +190,10 @@ Options:
 ### `raula/no-document-element-styles-in-css`
 
 Disallows styling `html` and `body` directly in CSS.
+
+### `raula/no-css-modules`
+
+Disallows using stylesheet files that end in `.module.css`.
 
 ## Reference
 

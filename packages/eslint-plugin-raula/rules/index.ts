@@ -10,6 +10,7 @@ import exhaustiveTailwindThemeTokens, {
 import noAwaitInLayout, {
 	docs as noAwaitInLayoutDocs,
 } from "./no-await-in-layout";
+import noCssModules, { docs as noCssModulesDocs } from "./no-css-modules";
 import noDisallowedGlobalClassSelectors, {
 	docs as noDisallowedGlobalClassSelectorsDocs,
 } from "./no-disallowed-global-class-selectors";
@@ -25,6 +26,7 @@ const rules = {
 	"exhaustive-tailwind-theme-tokens": exhaustiveTailwindThemeTokens,
 	"no-disallowed-global-class-selectors": noDisallowedGlobalClassSelectors,
 	"no-document-element-styles-in-css": noDocumentElementStylesInCss,
+	"no-css-modules": noCssModules,
 	"no-await-in-layout": noAwaitInLayout,
 	"no-inline-style-prop": noInlineStyleProp,
 } as const satisfies Record<string, Rule.RuleModule>;
@@ -34,6 +36,7 @@ const ruleDocs = {
 	"exhaustive-tailwind-theme-tokens": exhaustiveTailwindThemeTokensDocs,
 	"no-disallowed-global-class-selectors": noDisallowedGlobalClassSelectorsDocs,
 	"no-document-element-styles-in-css": noDocumentElementStylesInCssDocs,
+	"no-css-modules": noCssModulesDocs,
 	"no-await-in-layout": noAwaitInLayoutDocs,
 	"no-inline-style-prop": noInlineStylePropDocs,
 } as const satisfies Record<keyof typeof rules, RuleDoc>;

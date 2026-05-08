@@ -99,12 +99,14 @@ async function buildPresetMeta() {
 			}
 
 			const sourceGlobs = extractFiles(source);
-			return [{
-				name: preset.name,
-				file: preset.file,
-				glob: sourceGlobs.length > 0 ? sourceGlobs.join(", ") : preset.glob,
-				rules: extractRules(source),
-			}];
+			return [
+				{
+					name: preset.name,
+					file: preset.file,
+					glob: sourceGlobs.length > 0 ? sourceGlobs.join(", ") : preset.glob,
+					rules: extractRules(source),
+				},
+			];
 		}),
 	);
 
