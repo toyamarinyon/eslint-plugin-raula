@@ -11,7 +11,7 @@
 		"lint": "turbo lint --filter=!./apps/*",
 		"format": "biome check --write .",
 		"format:check": "biome check .",
-		"test": "bun test apps",
+		"test": "bun test packages apps",
 		"test:raula-rules": "bun test apps/raula-rules-fixture"
 	},
 	"devDependencies": {
