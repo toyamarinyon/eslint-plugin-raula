@@ -1,6 +1,6 @@
 {
 	"name": "eslint-plugin-raula",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"description": "Opinionated ESLint rules and flat-config presets for Tailwind and Next.js app standards.",
 	"keywords": [
 		"eslint",
