@@ -7,9 +7,10 @@
 		"packages/*"
 	],
 	"scripts": {
-		"build": "turbo build",
-		"lint": "turbo lint",
-		"format": "biome check --write ."
+		"build": "turbo build --filter=!./apps/*",
+		"lint": "turbo lint --filter=!./apps/*",
+		"format": "biome check --write .",
+		"test:no-css-modules": "bun test apps/no-css-modules-fixture"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.14",
