@@ -10,6 +10,8 @@
 		"build": "turbo build --filter=!./apps/*",
 		"lint": "turbo lint --filter=!./apps/*",
 		"format": "biome check --write .",
+		"format:check": "biome check .",
+		"test": "bun test apps",
 		"test:no-css-modules": "bun test apps/no-css-modules-fixture"
 	},
 	"devDependencies": {
