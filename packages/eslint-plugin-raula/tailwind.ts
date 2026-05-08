@@ -27,6 +27,17 @@ const tailwind: Linter.Config[] = [
 			"raula/no-document-element-styles-in-css": "error",
 		},
 	},
+	{
+		files: ["**/*.module.css"],
+		language: "css/css",
+		plugins: {
+			css: cssPlugin as never,
+			raula: plugin,
+		},
+		rules: {
+			"raula/no-css-modules": "error",
+		},
+	},
 ];
 
 export default tailwind;
