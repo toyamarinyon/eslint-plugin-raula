@@ -12,7 +12,7 @@
 		"format": "biome check --write .",
 		"format:check": "biome check .",
 		"test": "bun test apps",
-		"test:no-css-modules": "bun test apps/no-css-modules-fixture"
+		"test:raula-rules": "bun test apps/raula-rules-fixture"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.14",
