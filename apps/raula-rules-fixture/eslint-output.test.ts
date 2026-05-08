@@ -11,7 +11,9 @@ test("raula presets report fixture violations", () => {
 		},
 	);
 
+	expect(result.error).toBeUndefined();
 	expect(result.status).not.toBe(0);
+	expect(result.stdout).not.toBe("");
 
 	const results = JSON.parse(result.stdout);
 	const reports = results.flatMap((fileResult) =>
@@ -88,4 +90,6 @@ test("raula presets report fixture violations", () => {
 			}),
 		}),
 	);
-});
+	// ESLint cold starts can take more than Bun's default 5s test timeout in CI
+	// because this fixture loads Next.js, TypeScript, Tailwind, and flat config.
+}, 15_000);
