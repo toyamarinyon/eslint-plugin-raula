@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+:root {
+	--fixture-brand: #0f766e;
+}
+
+.fixture {
+	color: red;
+}
+
+html {
+	scroll-behavior: smooth;
+}
