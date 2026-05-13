@@ -1,0 +1,78 @@
+eslint-plugin-raulaを追加した後に、eslint.config.mjs を更新するのが手間なので、更新するスクリプトをnpx eslint-plugin-raula install` で実行できるようにしたいです。
+
+1. プロジェクトのeslint configファイルを探す（eslint configのファイル形式でfizzyに検索）見つからなければwarnログ
+2. 見つかったら変更内容をdiffでログ表示 Yes/No 確認
+3. AGENTS.md の更新可否を確認 Yes/No (今のinstruct相当）
+4. 実行
+
+unjs/consola 使ってみやすく実装できるなら使ってもいいですが、小さく独自実装できるならそれでもいいです。
+まずは作るものや作り方をディスカッションしましょう。
+
+---
+
+> install は tailwind と next-layout の両方を常に入れるか
+
+recommended を作ったほうが色々シンプルになりそうですね。
+
+---
+
+# Selected text:
+
+## Selection 1
+install は tailwind と next-layout の両方を常に入れるか
+
+## Selection 2
+ESLint config が複数ある場合
+
+## My request for Codex:
+いや、やはり、今のままにしておきましょう。
+1: 常に両方で良いです。
+2: 複数ある場合は、その旨案内して止めましょう
+
+---
+
+この量だとjsは危険ですね。typescriptで書き直しましょう。
+[@builder](subagent://builder) に実装を依頼してあなたはアウトプットを評価して十分な水準になるまでフィードバックを続けてください。buildが成功するように
+
+---
+
+テストケースのconfig実際に `create-next` で作られるものと違うので、
+
+```
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+```これで試しましょう。
+
+---
+
+これをローカルで試すにはどうしたらいいですかね？
+
+---
+
+/Users/toyamarinyon/playground/20260513/raula-install-test で試してみて、
+
+---
+
+# Selected text:
+
+## Selection 1
+パイプ入力で Yes/No を複数回渡すと readline が stdin を閉じて落ちる問題
+
+## My request for Codex:
+これはテストコードかく？

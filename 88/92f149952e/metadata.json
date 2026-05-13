@@ -1,0 +1,32 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "8892f149952e",
+  "strategy": "manual-commit",
+  "branch": "codex/raula-install",
+  "checkpoints_count": 6,
+  "files_touched": [
+    "bun.lock",
+    "packages/eslint-plugin-raula/README.md",
+    "packages/eslint-plugin-raula/bin/eslint-plugin-raula.js",
+    "packages/eslint-plugin-raula/cli.ts",
+    "packages/eslint-plugin-raula/package.json",
+    "packages/eslint-plugin-raula/tests/cli.test.ts",
+    "packages/eslint-plugin-raula/tsconfig.json",
+    "packages/eslint-plugin-raula/tsup.config.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/88/92f149952e/0/metadata.json",
+      "transcript": "/88/92f149952e/0/full.jsonl",
+      "content_hash": "/88/92f149952e/0/content_hash.txt",
+      "prompt": "/88/92f149952e/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 362390,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 7341568,
+    "output_tokens": 34577,
+    "api_call_count": 104
+  }
+}
