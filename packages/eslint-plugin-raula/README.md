@@ -17,7 +17,13 @@ bun add -d eslint eslint-plugin-raula
 
 ## Setup
 
-`eslint-plugin-raula` is designed for ESLint flat config. Create or update `eslint.config.mjs` in your project root, then import the presets you want.
+`eslint-plugin-raula` is designed for ESLint flat config. After installing the package, run the installer from your project root:
+
+```bash
+npx eslint-plugin-raula install
+```
+
+The installer looks for a single ESLint flat config file, shows the diff, asks for confirmation, and adds the Tailwind and Next.js layout presets. It can also update `AGENTS.md` with the managed Raula reference block. If multiple ESLint config files are found, the installer stops and asks you to update the intended file manually.
 
 ### Basic flat config
 
@@ -85,7 +91,7 @@ Run the linter from your app root:
 npm run lint
 ```
 
-For teams that use repository instructions, inject the managed reference block into `AGENTS.md` after installing the package:
+For teams that use repository instructions, you can also inject only the managed reference block into `AGENTS.md`:
 
 ```bash
 npx eslint-plugin-raula instruct
@@ -206,7 +212,20 @@ Read the package references before editing styling, `className` usage, global CS
 
 ## CLI
 
-Use the package CLI to inject the managed AGENTS reference block into the current repository:
+Use the package CLI to update the current repository after installing the package:
+
+```bash
+npx eslint-plugin-raula install
+```
+
+The command:
+
+- Finds one ESLint flat config file in the current directory.
+- Shows the ESLint config diff and asks before applying it.
+- Adds both `eslint-plugin-raula/tailwind` and `eslint-plugin-raula/next-layout`.
+- Shows the `AGENTS.md` diff and asks before applying it.
+
+Use `instruct` when you only want to inject the managed AGENTS reference block:
 
 ```bash
 npx eslint-plugin-raula instruct

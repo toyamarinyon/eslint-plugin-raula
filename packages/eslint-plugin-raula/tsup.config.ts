@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-	entry: ["index.ts", "tailwind.ts", "next-layout.ts"],
+	entry: ["index.ts", "tailwind.ts", "next-layout.ts", "cli.ts"],
 	format: ["esm"],
 	dts: true,
 	clean: true,
