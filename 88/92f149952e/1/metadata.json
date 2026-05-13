@@ -1,0 +1,70 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "8892f149952e",
+  "session_id": "019e2031-9ad5-7633-b3d0-2acd61a677d0",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-13T08:39:14.27921Z",
+  "branch": "codex/raula-install",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "bun.lock",
+    "packages/eslint-plugin-raula/README.md",
+    "packages/eslint-plugin-raula/bin/eslint-plugin-raula.js",
+    "packages/eslint-plugin-raula/cli.ts",
+    "packages/eslint-plugin-raula/package.json",
+    "packages/eslint-plugin-raula/tsconfig.json",
+    "packages/eslint-plugin-raula/tsup.config.ts"
+  ],
+  "agent": "Codex",
+  "model": "gpt-5.3-codex",
+  "turn_id": "277902ea6bf7",
+  "token_usage": {
+    "input_tokens": 64778,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 788736,
+    "output_tokens": 9100,
+    "api_call_count": 23
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-13T08:39:14.266806Z",
+    "agent_lines": 127,
+    "agent_removed": 40,
+    "human_added": 86,
+    "human_modified": 12,
+    "human_removed": 0,
+    "total_committed": 225,
+    "total_lines_changed": 265,
+    "agent_percentage": 63.0188679245283,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 785,
+      "user_lines_removed": 12,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".codex/agents/builter.toml": 38,
+        ".codex/agents/coding.md": 232,
+        "packages/eslint-plugin-raula/README.md": 22,
+        "packages/eslint-plugin-raula/bin/eslint-plugin-raula.js": 421,
+        "packages/eslint-plugin-raula/tests/cli.test.ts": 72
+      },
+      "user_removed_per_file": {
+        "packages/eslint-plugin-raula/README.md": 3,
+        "packages/eslint-plugin-raula/bin/eslint-plugin-raula.js": 9
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 579,
+      "agent_lines_removed": 53
+    }
+  ]
+}

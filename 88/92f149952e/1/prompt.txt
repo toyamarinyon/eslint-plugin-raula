@@ -1,0 +1,18 @@
+You are working in /Users/toyamarinyon/repo/eslint-plugin-raula. The user wants the large JS CLI implementation rewritten in TypeScript and the build to succeed. You are not alone in the codebase; do not revert unrelated user changes, and adjust to existing edits.
+
+Current state: packages/eslint-plugin-raula/bin/eslint-plugin-raula.js has a newly added `install` command with a lot of logic in JS, and packages/eslint-plugin-raula/tests/cli.test.ts tests exported helpers from that JS file. Please refactor so the substantial CLI logic lives in TypeScript, while the npm bin remains a small executable JS wrapper if needed.
+
+Requirements:
+- Preserve CLI behavior: `eslint-plugin-raula install` finds exactly one root ESLint config among eslint.config.js/mjs/cjs/ts/mts/cts, warns and stops if none or multiple, shows diffs and asks Yes/No before updating ESLint config and AGENTS.md, always adds both `eslint-plugin-raula/tailwind` and `eslint-plugin-raula/next-layout`, keeps `instruct` command.
+- Prefer TypeScript source in packages/eslint-plugin-raula, included in tsup build output. Update package exports/files/bin as needed so `npx eslint-plugin-raula install` works from the published package.
+- Update tests to import the TypeScript module or built-compatible source as appropriate.
+- Ensure `bun test packages/eslint-plugin-raula` and `bun run build --filter eslint-plugin-raula` pass.
+- Keep changes scoped to CLI/refactor/docs/tests. Do not change rule behavior.
+
+Please edit files directly in your workspace and final-answer with a concise summary plus changed file paths and commands run.
+
+---
+
+Review feedback: the TypeScript refactor looks good overall. Please make one adjustment: remove the public `./cli` package export from packages/eslint-plugin-raula/package.json. The bin can import `../dist/cli.js` by relative path from the published package, so we do not need to expose CLI internals as public API. Keep `cli.ts` as a tsup entry so `dist/cli.js` and d.ts can still be built and packaged via `files: ["dist", ...]`.
+
+After that, rerun the relevant formatting/check/build/test commands you can, and report the changed paths and command results. Do not touch unrelated files.
