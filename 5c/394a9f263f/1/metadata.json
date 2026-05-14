@@ -1,0 +1,80 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "5c394a9f263f",
+  "session_id": "019e2031-9ad5-7633-b3d0-2acd61a677d0",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-14T17:45:25.490804Z",
+  "branch": "codex/raula-install",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "packages/eslint-plugin-raula/README.md",
+    "packages/eslint-plugin-raula/cli.ts",
+    "packages/eslint-plugin-raula/tests/cli.test.ts"
+  ],
+  "agent": "Codex",
+  "model": "gpt-5.3-codex",
+  "turn_id": "dd6576cde225",
+  "checkpoint_transcript_start": 155,
+  "transcript_lines_at_start": 155,
+  "token_usage": {
+    "input_tokens": 300426,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 2115840,
+    "output_tokens": 17156,
+    "api_call_count": 38
+  },
+  "session_metrics": {
+    "turn_count": 6
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-14T17:45:25.474212Z",
+    "agent_lines": 627,
+    "agent_removed": 267,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 43,
+    "total_committed": 627,
+    "total_lines_changed": 937,
+    "agent_percentage": 95.41088580576307,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 9,
+      "user_lines_removed": 43,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "packages/eslint-plugin-raula/cli.ts": 5,
+        "packages/eslint-plugin-raula/tests/cli.test.ts": 4
+      },
+      "user_removed_per_file": {
+        "packages/eslint-plugin-raula/README.md": 20,
+        "packages/eslint-plugin-raula/cli.ts": 19,
+        "packages/eslint-plugin-raula/tests/cli.test.ts": 4
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 124,
+      "agent_lines_removed": 46
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 201,
+      "agent_lines_removed": 221
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 480,
+      "agent_lines_removed": 282
+    }
+  ]
+}
