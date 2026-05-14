@@ -1,0 +1,25 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "0e14adb0008b",
+  "strategy": "manual-commit",
+  "branch": "codex/issue-4-fix-bin-entry",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "packages/eslint-plugin-raula/package.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0e/14adb0008b/0/metadata.json",
+      "transcript": "/0e/14adb0008b/0/full.jsonl",
+      "content_hash": "/0e/14adb0008b/0/content_hash.txt",
+      "prompt": "/0e/14adb0008b/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 60643,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1075200,
+    "output_tokens": 4485,
+    "api_call_count": 29
+  }
+}
