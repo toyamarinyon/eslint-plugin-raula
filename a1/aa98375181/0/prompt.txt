@@ -1,0 +1,265 @@
+instructは不要なので削除しましょう。Versionが変わるので後方互換性は無視して良いです。
+
+---
+
+makerは eslint-plugin-raula がいいですね。
+
+---
+
+インデントのspaceかtabなんですが、フォーマッタの設定で変わると思うので、対象のファイルのインデント調べてそれを使うようにできないですかね？
+まずはディスカッションしましょう。
+
+---
+
+# Selected text:
+
+## Selection 1
+「配列の最初の要素の indent を見る」
+
+## My request for Codex:
+今そうなってるんですね。
+
+---
+
+あーなるほど。そうですね。defineConfigのarrayを見るというよりはファイルから推定の方が筋がいい気がしますね。実装しましょう。
+
+[@lilas](agent://019e2031-9ad5-7633-b3d0-2acd61a677d0) に依頼して、あなたはアウトプットの評価・フィードバックをお願いします。テストコードも書きましょう。
+
+---
+
+/Users/toyamarinyon/playground/20260513/raula-install-test のunstageの変更resetしてもう一度やってみましょう。
+
+---
+
+もう一度resetしてもらって、私が実行してみようと思うのでコピペできるコマンドください。
+
+---
+
+確認できました。なるほど良いですが、ちょっと唐突ですね。
+
+```bash
+npx eslint-plugin-raula install
+Installing esling-plugin-raula...
+    → Apply ESLint config changes? (y/N) 
+```
+
+こういう感じにできます？
+
+---
+
+playgroundで試したいので、resetするコマンド教えてください。
+
+---
+
+```
+> node /Users/toyamarinyon/repo/eslint-plugin-raula/packages/eslint-plugin-raula/bin/eslint-plugin-raula.js install
+
+Installing eslint-plugin-raula...
+--- eslint.config.mjs
++++ eslint.config.mjs
+ import { defineConfig, globalIgnores } from "eslint/config";
+ import nextVitals from "eslint-config-next/core-web-vitals";
+ import nextTs from "eslint-config-next/typescript";
++import raulaTailwind from "eslint-plugin-raula/tailwind";
++import raulaNextLayout from "eslint-plugin-raula/next-layout";
+
+ const eslintConfig = defineConfig([
++  ...raulaTailwind,
++  ...raulaNextLayout,
+   ...nextVitals,
+   ...nextTs,
+   // Override default ignores of eslint-config-next.
+    → Apply ESLint config changes? (y/N)
+```
+
+diffなくていいです。
+
+---
+
+```
+Installing eslint-plugin-raula...
+    → Apply ESLint config changes? (y/N)
+```
+インデント多いですね2つでいいです。
+
+---
+
+```
+> node /Users/toyamarinyon/repo/eslint-plugin-raula/packages/eslint-plugin-raula/bin/eslint-plugin-raula.js install
+
+Installing eslint-plugin-raula...
+    → Apply ESLint config changes? (y/N)
+```
+変わってないです。build必要？
+
+---
+
+なんで変わってないんでしょう。
+
+> node /Users/toyamarinyon/repo/eslint-plugin-raula/packages/eslint-plugin-raula/bin/eslint-plugin-raula.js install
+
+Installing eslint-plugin-raula...
+    → Apply ESLint config changes? (y/N)
+
+---
+
+あ、
+
+---
+
+buildしてね
+
+---
+
+できました。
+
+```
+Installing eslint-plugin-raula...
+  → Apply ESLint config changes? (y/N) y
+success Updated eslint.config.mjs.
+  → Update AGENTS.md with Raula instructions? (y/N) y
+success Updated AGENTS.md.
+``
+
+合ってるんですが、実行は最後にまとめてやりたいですね。
+
+```
+Installing eslint-plugin-raula...
+  → Update ESLint config with Raula...[なんか自然な文章にして]
+  → Update AGENTS.md with Raula instructions? (y/N) y
+
+Updated ESLint config and AGENTS.md
+```
+
+こんな感じがいい
+
+---
+
+いい感じでした。さらにいい感じに、こういう感じにできます？まずはディスカッションしましょう。
+
+---
+
+# Selected text:
+
+## Selection 1
+ただし、printf 'y\ny\n' | ... みたいな pipe 入力テストを大事にするなら、まずは依存なしで「見た目だけ少し整える」が堅いです。たとえば:
+
+## My request for Codex:
+pipe入力テストはなんか無茶なテスト方法だなと思っていて、どちらかといえばCLIのオプションで
+--agents-md, --eslint みたいなの渡せばy相当になるといいなと思います。
+逆に --no-agents-md, --no-eslint みたいなのもできるといい。
+
+---
+
+--eslint だけ、 --agents-md だけの場合はどうしますか？
+
+---
+
+いいですね。CLI optionに対応するなら、合わせてclack使って対話的なUIもリッチにできると思うのですがどうでしょう？
+
+---
+
+OKです。 [@lilas](agent://019e2031-9ad5-7633-b3d0-2acd61a677d0) に実装を依頼して、あなたは評価とフィードバックお願いします。playgroundは好きに使ってもらっていいので、いい感じになるまで続けてください。
+
+---
+
+> node /Users/toyamarinyon/repo/eslint-plugin-raula/packages/eslint-plugin-raula/bin/eslint-plugin-raula.js install
+
+┌  eslint-plugin-raula installer
+│
+●  Found ESLint config: eslint.config.mjs
+│
+●  Pending changes: ESLint config and AGENTS.md.
+│
+◆  Update ESLint config with Raula presets?
+│  ○ Yes / ● No
+└
+なんかこれは大袈裟ですね。clack使うとこなります？
+
+---
+
+Clackなしにしましょう。
+
+---
+Installing eslint-plugin-raula...
+✓ Found ESLint config: eslint.config.mjs
+→ Would you like to update  ESLint config with Raula presets? > Yes / No
+----
+
+ここで選択したら
+
+---
+Installing eslint-plugin-raula...
+✓ Found ESLint config: eslint.config.mjs
+✓ Would you like to update ESLint config with Raula presets? > Yes 
+→ Would you like to update AGENTS.md with Raula instructions? > Yes / No
+----
+
+
+選択したら
+
+```
+Installing eslint-plugin-raula...
+✓ Found ESLint config: eslint.config.mjs
+✓ Would you like to update ESLint config with Raula presets? > Yes 
+✓ Would you like to update AGENTS.md with Raula instructions? > No
+Updating...
+
+---
+
+こういうふうに左右キーでYes/Noを切り替えたいです。
+pipe考えるのややこしいと思うので、playgroundで bun create next-app@latest test-c してみて、どんな感じに動くか確認して、それと同じ感じにしていいです。
+
+---
+
+とてもいい感じですが、カーソルの点滅を無効にできます？
+
+---
+
+```
+✓ Found ESLint config: eslint.config.mjs
+✔ Would you like to update ESLint config with Raula presets? › Yes
+✔ Would you like to update AGENTS.md with Raula instructions? › Yes
+```
+これ
+```
+✓ Found ESLint config: eslint.config.mjs
+✔ Would you like to update <em>eslint.config.mjs</em> with Raula presets? › Yes
+✔ Would you like to update <em>AGENTS.md</em> with Raula instructions? › Yes
+```
+
+みたいにしたいです。eslint.config.mjsはFoundしたファイル名で、
+emは太字というか色を変えて欲しいです。添付みたいな感じ。
+
+---
+
+Yes/Noのactive表示と一緒だと埋もれるので、もうちょっと違う色がいいです。
+
+---
+
+Installing eslint-plugin-raula...
+✓ Found ESLint config: eslint.config.mjs
+✔ Would you like to update eslint.config.mjs with Raula presets? › No
+? Would you like to update AGENTS.md with Raula instructions? › No / Yes
+
+✓と✔があるので✔に統一してgreenに
+
+---
+
+こんな感じで選択肢そのまま残せます？このほうがどっちを選択したか分かりやすいですね。
+
+---
+
+添付のような感じで`Updated ESLint config and AGENTS.md.`の前に`Success!`を緑で出しましょう
+
+---
+
+Yesをデフォルトにしましょう
+
+---
+
+Rewrite pull request title and body in English
+
+---
+
+update with gh cli
