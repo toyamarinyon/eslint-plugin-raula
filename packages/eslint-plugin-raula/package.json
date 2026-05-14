@@ -65,6 +65,7 @@
 		"tailwindcss": "4.2.4"
 	},
 	"devDependencies": {
+		"@types/node": "20.19.39",
 		"tsup": "8.5.1",
 		"typescript": "^5.9.3"
 	}

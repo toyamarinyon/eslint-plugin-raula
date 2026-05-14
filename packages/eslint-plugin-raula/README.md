@@ -17,7 +17,13 @@ bun add -d eslint eslint-plugin-raula
 
 ## Setup
 
-`eslint-plugin-raula` is designed for ESLint flat config. Create or update `eslint.config.mjs` in your project root, then import the presets you want.
+`eslint-plugin-raula` is designed for ESLint flat config. After installing the package, run the installer from your project root:
+
+```bash
+npx eslint-plugin-raula install
+```
+
+The installer looks for a single ESLint flat config file, shows the diff, asks for confirmation, and adds the Tailwind and Next.js layout presets. It can also update `AGENTS.md` with the managed Raula reference block. If multiple ESLint config files are found, the installer stops and asks you to update the intended file manually.
 
 ### Basic flat config
 
@@ -84,14 +90,6 @@ Run the linter from your app root:
 ```bash
 npm run lint
 ```
-
-For teams that use repository instructions, inject the managed reference block into `AGENTS.md` after installing the package:
-
-```bash
-npx eslint-plugin-raula instruct
-```
-
-The generated block points contributors and coding agents to the installed rule reference before they edit styling, JSX class names, global CSS, or Next.js layout files.
 
 ## Usage
 
@@ -206,14 +204,21 @@ Read the package references before editing styling, `className` usage, global CS
 
 ## CLI
 
-Use the package CLI to inject the managed AGENTS reference block into the current repository:
+Use the package CLI to update the current repository after installing the package:
 
 ```bash
-npx eslint-plugin-raula instruct
+npx eslint-plugin-raula install
 ```
 
-The command updates `AGENTS.md` in the current working directory with an idempotent block pointing to:
+The command:
 
-```
-./node_modules/eslint-plugin-raula/REFERENCE.md
+- Finds one ESLint flat config file in the current directory.
+- Asks before updating the ESLint config unless `--eslint` or `--no-eslint` is passed.
+- Adds both `eslint-plugin-raula/tailwind` and `eslint-plugin-raula/next-layout`.
+- Asks before updating `AGENTS.md` unless `--agents-md` or `--no-agents-md` is passed.
+
+For non-interactive usage:
+
+```bash
+npx eslint-plugin-raula install --eslint --agents-md
 ```
