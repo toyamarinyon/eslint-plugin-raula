@@ -1,0 +1,88 @@
+Please implement indentation detection for the eslint-plugin-raula installer in /Users/toyamarinyon/repo/eslint-plugin-raula.
+
+Goal: when inserting Raula preset spreads into an ESLint flat config array, infer the indentation style from the target file rather than falling back to a hardcoded tab. Existing array item indentation can still be used when present, but fallback should use a file-level detected indent unit.
+
+Requirements:
+- Add/adjust implementation in packages/eslint-plugin-raula/cli.ts.
+- Detect tab vs spaces from the file. Prefer tabs if existing indents use tabs. For spaces, infer a common indentation unit, especially 2 spaces and 4 spaces. Fall back to 2 spaces if unknown.
+- Use detected file indentation for empty arrays like `export default defineConfig([])` or `export default []` where no existing config array item indent exists.
+- Preserve current behavior for create-next style configs with 2-space array items.
+- Add tests in packages/eslint-plugin-raula/tests/cli.test.ts covering at least:
+  - create-next 2-space config remains 2 spaces.
+  - tab-indented config inserts tab indentation.
+  - 4-space-indented config inserts 4-space indentation.
+  - empty flat config array uses detected file indentation instead of tab.
+  - fallback with no useful indentation uses 2 spaces.
+- Run relevant formatting, tests, and build if feasible: `bun test packages/eslint-plugin-raula` and `bun run build --filter eslint-plugin-raula`.
+
+You are not alone in the codebase. Do not revert unrelated user changes. Report changed paths and command results.
+
+---
+
+Review feedback: good direction and tests mostly cover the intent. I found one issue to tighten before accepting.
+
+`getArrayItemIndent()` currently does `source.slice(openIndex + 1)` and searches to the end of the file. For an empty config array like `export default defineConfig([]);` followed later by an unrelated indented block, it can incorrectly treat that later block's indentation as an existing array item indent. Please scope the existing-array-item lookup to the config array body only, using the already computed `closeIndex` from `findMatchingBracket`. If there is no item indent inside that array body, fall back to `lineIndent + detectIndentUnit(source)`.
+
+Suggested shape:
+- `getArrayItemIndent(source, openIndex, closeIndex, indentUnit)`
+- Search only `source.slice(openIndex + 1, closeIndex)` for the first non-empty indented line.
+- Add/adjust a test for an empty config array followed by an unrelated indented block, proving the fallback is file-level detection rather than scanning beyond the config array. Existing tests should still pass.
+
+Please run `bun test packages/eslint-plugin-raula/tests/cli.test.ts` and build if feasible.
+
+---
+
+Please implement richer installer CLI UX for /Users/toyamarinyon/repo/eslint-plugin-raula using @clack/prompts, plus explicit CLI options.
+
+Context:
+- Current CLI entry is packages/eslint-plugin-raula/cli.ts built to dist/cli.js, bin wrapper imports dist/cli.js.
+- Current behavior: `eslint-plugin-raula install` finds one ESLint config, asks two y/N prompts with custom readline, then applies selected changes at the end.
+- User wants clack-style UI and options.
+
+Requirements:
+1. Add @clack/prompts as a runtime dependency of packages/eslint-plugin-raula (not devDependency, because published CLI needs it). Update bun.lock.
+2. Support options for `install`:
+   - `--eslint`: ESLint config yes
+   - `--no-eslint`: ESLint config no
+   - `--agents-md`: AGENTS.md yes
+   - `--no-agents-md`: AGENTS.md no
+   - If an option is specified for a target, do not prompt for that target.
+   - If a target is unspecified and has a pending change, prompt with clack confirm.
+   - If all pending targets are specified by options, run non-interactively.
+   - `--eslint --no-eslint` or `--agents-md --no-agents-md` should fail clearly without applying changes.
+   - Unknown options should fail clearly.
+3. Use clack for interactive UI:
+   - intro/outro or log messages should feel like create-next style.
+   - Show found ESLint config path in a pleasant way.
+   - Prompt wording:
+     - Update ESLint config with Raula presets?
+     - Update AGENTS.md with Raula instructions?
+   - Summary: `Updated ESLint config and AGENTS.md.` / target-specific / `No changes applied.`
+   - If already up-to-date, show it cleanly and avoid prompting for that target.
+   - Handle cancel cleanly (do not apply changes after cancellation).
+4. Keep behavior for finding configs, updating ESLint config, AGENTS block markers (`eslint-plugin-raula-start/end`), indentation detection, and idempotence.
+5. Tests:
+   - Replace pipe-input-oriented test with option-driven tests.
+   - Cover `--eslint --agents-md` updates both without prompting.
+   - Cover single target options: `--eslint --no-agents-md`, `--no-eslint --agents-md`.
+   - Cover `--no-eslint --no-agents-md` no-op.
+   - Cover conflict options and unknown option do not update files.
+   - Keep existing indentation and idempotence tests.
+   - If needed, make clack prompts injectable/mocked so tests do not require TTY.
+6. Build must pass: `bun test packages/eslint-plugin-raula`, `bun run build --filter eslint-plugin-raula`, and formatter/biome check.
+7. You may use /Users/toyamarinyon/playground/20260513/raula-install-test freely for manual UX testing. Reset it as needed, but avoid touching unrelated repo files.
+
+Please edit files directly, run checks, and report changed paths, commands, and any UX notes.
+
+---
+
+Review feedback: good progress, but there are blockers before accepting.
+
+1. Do NOT restore `instruct`. The user explicitly asked to remove it and ignore backward compatibility. Please remove the `instruct` command branch and usage text again. `runCli` should only support `install`; other commands show usage / exit 1.
+2. `@clack/prompts` confirm currently uses `initialValue: true`; this changes default behavior to Yes. We want previous y/N semantics / No default. Please use `initialValue: false`.
+3. Cancel handling currently calls the imported global `cancel(...)` rather than going through injected UI, which makes it harder to test and bypasses the mock. Please add `cancel(message): void` to `CliUi` or otherwise make cancellation observable/injectable, and add a test that cancellation does not update either file.
+4. Please add a partial option test: e.g. `--eslint` should update ESLint without prompting for it, but prompt for AGENTS.md if pending. Use mock confirm to answer true/false and verify only the unspecified target prompts.
+5. Keep unknown/conflict option behavior.
+6. Rerun tests/build/biome.
+
+Do not broaden scope. Please report changed paths and commands.
