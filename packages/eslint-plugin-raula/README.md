@@ -91,14 +91,6 @@ Run the linter from your app root:
 npm run lint
 ```
 
-For teams that use repository instructions, you can also inject only the managed reference block into `AGENTS.md`:
-
-```bash
-npx eslint-plugin-raula instruct
-```
-
-The generated block points contributors and coding agents to the installed rule reference before they edit styling, JSX class names, global CSS, or Next.js layout files.
-
 ## Usage
 
 You can also import the plugin directly and enable individual rules:
@@ -221,18 +213,12 @@ npx eslint-plugin-raula install
 The command:
 
 - Finds one ESLint flat config file in the current directory.
-- Shows the ESLint config diff and asks before applying it.
+- Asks before updating the ESLint config unless `--eslint` or `--no-eslint` is passed.
 - Adds both `eslint-plugin-raula/tailwind` and `eslint-plugin-raula/next-layout`.
-- Shows the `AGENTS.md` diff and asks before applying it.
+- Asks before updating `AGENTS.md` unless `--agents-md` or `--no-agents-md` is passed.
 
-Use `instruct` when you only want to inject the managed AGENTS reference block:
+For non-interactive usage:
 
 ```bash
-npx eslint-plugin-raula instruct
-```
-
-The command updates `AGENTS.md` in the current working directory with an idempotent block pointing to:
-
-```
-./node_modules/eslint-plugin-raula/REFERENCE.md
+npx eslint-plugin-raula install --eslint --agents-md
 ```
