@@ -23,7 +23,7 @@
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"bin": {
-		"eslint-plugin-raula": "./bin/eslint-plugin-raula.js"
+		"eslint-plugin-raula": "bin/eslint-plugin-raula.js"
 	},
 	"exports": {
 		".": {
