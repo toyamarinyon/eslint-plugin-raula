@@ -1,1 +1,1 @@
-githubのissue #4を進めたい、まずは確認してディスカッションしましょう
+okです。ではbranch作ってコミット, pull request作成までお願いします。
