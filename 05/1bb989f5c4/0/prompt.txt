@@ -1,1 +1,111 @@
 [$npm-publish](/Users/toyamarinyon/skills/npm-publish/SKILL.md) でpatchリリース
+
+---
+
+<skill>
+<name>npm-publish</name>
+<path>/Users/toyamarinyon/skills/npm-publish/SKILL.md</path>
+---
+name: npm-publish
+description: Use this skill when the user asks to release, version bump, publish, or ship an npm package. It covers package.json version bumps, build/test validation, release branches and pull requests, npm authentication and publish, git tags, and GitHub Releases with generated notes.
+---
+
+# NPM Publish
+
+Use this skill for npm package release work: patch/minor/major bumps, publishing, release PRs, tags, and GitHub Releases. Keep the workflow conservative: never publish or create public release artifacts until the working tree, version, package contents, and authentication state are clear.
+
+## Core Rules
+
+- Read repository instructions first, especially `AGENTS.md`, package scripts, release docs, and workspace/package manager config.
+- Respect dirty worktrees. Do not overwrite or revert user changes. If unrelated changes exist, leave them alone; if release files are already modified, inspect them before editing.
+- Prefer the repo package manager and scripts over generic commands. Use `bun`, `pnpm`, `yarn`, or `npm` according to `packageManager`, lockfiles, and existing scripts.
+- Use `npm whoami` before publishing. If not authenticated, ask the user to run `npm login` locally or provide the required OTP during `npm publish`; never ask for or store npm tokens.
+- Publish only from the package directory or with the repo's established release command.
+- Create GitHub Releases only after `npm publish` succeeds.
+- For GitHub Releases, use an existing pushed tag and `gh release create ... --verify-tag`; do not let GitHub create the tag implicitly.
+
+## Release Workflow
+
+1. Identify the package and requested bump.
+   - If the user says `minor release`, bump minor; similarly for patch or major.
+   - If multiple publishable packages exist and the target is unclear, ask which package.
+   - Read the package's current version from its `package.json`.
+
+2. Inspect repository state.
+   - Run `git status --short --branch`.
+   - Check whether the base branch is behind its remote. If it is, update it before branching when safe.
+   - Confirm the npm package name, publish access, exports/files, and scripts.
+
+3. Create a release branch.
+   - Use the Codex branch prefix unless the repo or user says otherwise, for example `codex/release-vX.Y.Z`.
+   - If the user only asked for planning, do not branch or edit.
+
+4. Bump the version.
+   - Prefer a package-manager command that updates the right `package.json` and lockfile without tagging, for example:
+
+```bash
+npm version minor --no-git-tag-version
+```
+
+   - In workspaces, run the equivalent scoped command from the repo root or package directory according to local conventions.
+   - If no lockfile should change, edit only the target `package.json`.
+
+5. Validate and build.
+   - Run the repo-required generation/build/test commands. Repository instructions take priority.
+   - For packages with generated reference files, run the generation/build step before reviewing diffs.
+   - Run `npm pack --dry-run` or the package-manager equivalent when useful to verify package contents.
+
+6. Review diffs.
+   - Check version changes, lockfile updates, generated docs, and build artifacts that are meant to be committed.
+   - Do not include unrelated files.
+
+7. Commit, push, and create a PR.
+   - Commit message format: `release: <package-name> vX.Y.Z` unless the repo has another convention.
+   - Push the release branch.
+   - Create a PR with `gh pr create`; keep the PR body concise and include validation commands run.
+   - Stop after PR creation unless the user explicitly asks to continue after merge or the PR is already merged.
+
+8. After the PR is merged, publish from the merged commit.
+   - Switch to/update the release base branch, usually `main`.
+   - Verify the merged commit contains `vX.Y.Z`.
+   - Run `npm whoami`.
+   - Run the publish command, usually:
+
+```bash
+npm publish --access public
+```
+
+   - If npm asks for OTP, request it from the user at that moment. Do not persist it.
+
+9. Tag and create the GitHub Release only after publish succeeds.
+   - Use the exact published version tag, usually `vX.Y.Z`.
+   - Create and push the tag from the published commit:
+
+```bash
+git tag vX.Y.Z
+git push origin vX.Y.Z
+```
+
+   - Create the release with GitHub-generated notes and require the remote tag to exist:
+
+```bash
+gh release create vX.Y.Z \
+  --title "vX.Y.Z" \
+  --generate-notes \
+  --verify-tag \
+  --fail-on-no-commits
+```
+
+10. Report the outcome.
+    - Include the package name/version, PR URL, npm publish result, tag, GitHub Release URL, and validation commands.
+    - If any step failed, say exactly where it stopped and what remains safe to retry.
+
+## Safety Boundaries
+
+- Do not run `npm publish` from a dirty worktree unless the user explicitly approves and the dirty files are understood.
+- Do not create a tag or GitHub Release before npm publish succeeds.
+- Do not publish if `npm pack --dry-run` or build output suggests the package contents are wrong.
+- Do not force-push, delete tags, unpublish packages, or dist-tag move unless the user explicitly asks and the risk is explained.
+- If the package is already published at the target version, stop and ask whether to create only missing GitHub artifacts or bump again.
+
+</skill>
