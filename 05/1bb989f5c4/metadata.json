@@ -1,0 +1,25 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "051bb989f5c4",
+  "strategy": "manual-commit",
+  "branch": "codex/release-v0.0.7",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "packages/eslint-plugin-raula/package.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/05/1bb989f5c4/0/metadata.json",
+      "transcript": "/05/1bb989f5c4/0/full.jsonl",
+      "content_hash": "/05/1bb989f5c4/0/content_hash.txt",
+      "prompt": "/05/1bb989f5c4/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 30538,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 220544,
+    "output_tokens": 1925,
+    "api_call_count": 9
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "cli_version": "dev",
+  "checkpoint_id": "051bb989f5c4",
+  "session_id": "019ee57f-33b3-7862-b2c5-2ccfd0a75326",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-20T14:47:58.434041Z",
+  "branch": "codex/release-v0.0.7",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "packages/eslint-plugin-raula/package.json"
+  ],
+  "agent": "Codex",
+  "model": "gpt-5.5",
+  "turn_id": "990281bff678",
+  "token_usage": {
+    "input_tokens": 30538,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 220544,
+    "output_tokens": 1925,
+    "api_call_count": 9
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-06-20T14:47:58.427452Z",
+    "agent_lines": 1,
+    "agent_removed": 1,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1,
+    "total_lines_changed": 2,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

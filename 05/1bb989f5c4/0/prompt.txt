@@ -1,0 +1,1 @@
+[$npm-publish](/Users/toyamarinyon/skills/npm-publish/SKILL.md) でpatchリリース
