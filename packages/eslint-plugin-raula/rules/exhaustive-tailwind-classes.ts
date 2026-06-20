@@ -27,12 +27,20 @@ export const docs = {
 			code: '{\n\trules: {\n\t\t"raula/exhaustive-tailwind-classes": [\n\t\t\t"error",\n\t\t\t{ rootFontSize: 16 },\n\t\t],\n\t},\n}',
 			language: "ts",
 		},
+		{
+			label:
+				"Use [Base UI ScrollArea gradient scroll fades](https://base-ui.com/react/components/scroll-area#gradient-scroll-fade) with canonical mask utilities",
+			code: '<div className="mask-linear-[to_bottom,transparent_0,black_min(40px,var(--scroll-area-overflow-y-start)),black_calc(100%_-_min(40px,var(--scroll-area-overflow-y-end,40px))),transparent_100%] mask-no-repeat" />',
+			language: "tsx",
+		},
 	],
 	options: {
 		description: "Configure root pixel value for canonical `rem` conversion.",
 		schema: "{\n\trootFontSize: 16\n}",
 	},
 } satisfies RuleDoc;
+
+const allowedArbitraryValueUtilities = ["mask-linear"];
 
 export default defineRule({
 	meta: {
@@ -92,6 +100,14 @@ export default defineRule({
 					}
 
 					if (!className.includes("[") && !className.includes("]")) {
+						continue;
+					}
+
+					const isAllowedArbitraryValueClass =
+						allowedArbitraryValueUtilities.some((utility) =>
+							className.startsWith(`${utility}-[`),
+						);
+					if (isAllowedArbitraryValueClass) {
 						continue;
 					}
 

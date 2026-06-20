@@ -32,10 +32,15 @@ tsxTester.run("exhaustive-tailwind-classes", exhaustiveTailwindClasses, {
 	valid: [
 		'const node = <div className="m-0 md:m-0 text-sm" />;',
 		"const node = <div className={dynamicClassName} />;",
+		'const node = <div className="mask-linear-[to_bottom,transparent_0,black_min(40px,var(--scroll-area-overflow-y-start)),black_calc(100%_-_min(40px,var(--scroll-area-overflow-y-end,40px))),transparent_100%] mask-no-repeat" />;',
 	],
 	invalid: [
 		{
 			code: 'const node = <div className="text-[16px]" />;',
+			errors: [{ messageId: "noArbitraryClass" }],
+		},
+		{
+			code: 'const node = <div className="[mask-image:linear-gradient(transparent,black)]" />;',
 			errors: [{ messageId: "noArbitraryClass" }],
 		},
 	],
