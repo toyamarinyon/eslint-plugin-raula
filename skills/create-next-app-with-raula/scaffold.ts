@@ -408,7 +408,8 @@ function main(): void {
 
 const isMain =
 	process.argv[1] &&
-	path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname);
+	path.resolve(process.argv[1]) ===
+		path.resolve(new URL(import.meta.url).pathname);
 if (isMain) {
 	main();
 }

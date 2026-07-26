@@ -3,11 +3,11 @@ import {
 	buildBiomeConfig,
 	findMatchingBrace,
 	insertCacheComponents,
-	meetsMinimumVersion,
 	MIN_CACHE_COMPONENTS_VERSION,
+	meetsMinimumVersion,
+	PM_COMMANDS,
 	parseArgs,
 	parseVersionTriple,
-	PM_COMMANDS,
 } from "./scaffold";
 
 describe("parseArgs", () => {
@@ -56,24 +56,24 @@ describe("PM_COMMANDS", () => {
 	});
 
 	test("pnpm scaffold command matches the documented shape", () => {
-		expect(PM_COMMANDS.pnpm.scaffold("create-next-app@latest", "my-app")).toEqual([
+		expect(
+			PM_COMMANDS.pnpm.scaffold("create-next-app@latest", "my-app"),
+		).toEqual([
 			"pnpm",
 			["create", "create-next-app@latest", "my-app", "--use-pnpm"],
 		]);
 	});
 
 	test("npm scaffold command uses npx, not npm", () => {
-		expect(PM_COMMANDS.npm.scaffold("create-next-app@latest", "my-app")).toEqual([
-			"npx",
-			["create-next-app@latest", "my-app", "--use-npm"],
-		]);
+		expect(
+			PM_COMMANDS.npm.scaffold("create-next-app@latest", "my-app"),
+		).toEqual(["npx", ["create-next-app@latest", "my-app", "--use-npm"]]);
 	});
 
 	test("bun scaffold command uses bunx", () => {
-		expect(PM_COMMANDS.bun.scaffold("create-next-app@latest", "my-app")).toEqual([
-			"bunx",
-			["create-next-app@latest", "my-app", "--use-bun"],
-		]);
+		expect(
+			PM_COMMANDS.bun.scaffold("create-next-app@latest", "my-app"),
+		).toEqual(["bunx", ["create-next-app@latest", "my-app", "--use-bun"]]);
 	});
 });
 
@@ -81,17 +81,13 @@ describe("findMatchingBrace", () => {
 	test("finds the matching close brace", () => {
 		const source = "const x = { a: 1, b: { c: 2 } };";
 		const openIndex = source.indexOf("{");
-		expect(findMatchingBrace(source, openIndex)).toBe(
-			source.lastIndexOf("}"),
-		);
+		expect(findMatchingBrace(source, openIndex)).toBe(source.lastIndexOf("}"));
 	});
 
 	test("ignores braces inside strings", () => {
 		const source = 'const x = { a: "{ not a brace }" };';
 		const openIndex = source.indexOf("{");
-		expect(findMatchingBrace(source, openIndex)).toBe(
-			source.lastIndexOf("}"),
-		);
+		expect(findMatchingBrace(source, openIndex)).toBe(source.lastIndexOf("}"));
 	});
 
 	test("returns -1 when unterminated", () => {
@@ -182,7 +178,9 @@ export default nextConfig;
 describe("buildBiomeConfig", () => {
 	test("disables the linter and sets tab indentation", () => {
 		const config = buildBiomeConfig("2.5.5");
-		expect(config.$schema).toBe("https://biomejs.dev/schemas/2.5.5/schema.json");
+		expect(config.$schema).toBe(
+			"https://biomejs.dev/schemas/2.5.5/schema.json",
+		);
 		expect(config.formatter.indentStyle).toBe("tab");
 		expect(config.linter.enabled).toBe(false);
 	});

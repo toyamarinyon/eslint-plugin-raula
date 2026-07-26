@@ -6,6 +6,12 @@ node_modules
 out
 dist
 *.tgz
+# ...except the create-next-app-with-raula skill: unlike the npm-published
+# packages/* (whose dist/ is rebuilt at publish time and never committed),
+# this skill is consumed straight from the repo, so its built dist/ must be
+# tracked.
+!skills/create-next-app-with-raula/dist
+!skills/create-next-app-with-raula/dist/**
 
 # code coverage
 coverage
