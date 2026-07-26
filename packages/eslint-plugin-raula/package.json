@@ -10,13 +10,13 @@
 		"tailwindcss",
 		"design-system"
 	],
-	"homepage": "https://github.com/toyamarinyon/eslint-plugin-raula/tree/main/packages/eslint-plugin-raula",
+	"homepage": "https://github.com/toyamarinyon/raula/tree/main/packages/eslint-plugin-raula",
 	"bugs": {
-		"url": "https://github.com/toyamarinyon/eslint-plugin-raula/issues"
+		"url": "https://github.com/toyamarinyon/raula/issues"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/toyamarinyon/eslint-plugin-raula.git",
+		"url": "git+https://github.com/toyamarinyon/raula.git",
 		"directory": "packages/eslint-plugin-raula"
 	},
 	"type": "module",
