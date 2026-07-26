@@ -56,5 +56,5 @@ Disallows importing `*.module.css` files.
 There is no ESLint-RuleTester-equivalent for oxlint rules. Tests run the real `oxlint` CLI against fixture files under `fixtures/` and assert on the JSON diagnostics output — see `tests/output.test.ts`.
 
 ```bash
-bun test tests
+pnpm test
 ```

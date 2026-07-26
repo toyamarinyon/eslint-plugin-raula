@@ -50,9 +50,10 @@
 	],
 	"sideEffects": false,
 	"scripts": {
-		"generate-reference": "bun run scripts/generate-reference.ts",
-		"build": "bun run generate-reference && tsup",
-		"prepublishOnly": "bun run build"
+		"generate-reference": "tsx scripts/generate-reference.ts",
+		"build": "tsx scripts/generate-reference.ts && tsup",
+		"prepublishOnly": "npm run build",
+		"test": "vitest run"
 	},
 	"publishConfig": {
 		"access": "public"
@@ -67,6 +68,8 @@
 	"devDependencies": {
 		"@types/node": "20.19.39",
 		"tsup": "8.5.1",
-		"typescript": "^5.9.3"
+		"tsx": "4.23.1",
+		"typescript": "^5.9.3",
+		"vitest": "4.1.10"
 	}
 }

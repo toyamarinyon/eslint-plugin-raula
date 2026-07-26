@@ -1,5 +1,5 @@
-import { describe, expect, test } from "bun:test";
 import stylelint from "stylelint";
+import { describe, expect, test } from "vitest";
 
 import exhaustiveTailwindThemeTokens from "./exhaustive-tailwind-theme-tokens";
 import noDisallowedGlobalClassSelectors from "./no-disallowed-global-class-selectors";

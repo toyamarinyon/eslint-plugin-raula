@@ -60,10 +60,10 @@ The script is written in TypeScript (`scaffold.ts`) with unit tests (`scaffold.t
 From the monorepo root:
 
 ```bash
-bun install
-bun run typecheck --filter create-next-app-with-raula   # tsc --noEmit
-bun test --filter create-next-app-with-raula             # unit tests
-bun run build --filter create-next-app-with-raula        # tsup -> dist/scaffold.mjs
+pnpm install
+pnpm --filter create-next-app-with-raula run typecheck   # tsc --noEmit
+pnpm --filter create-next-app-with-raula run test         # unit tests
+pnpm --filter create-next-app-with-raula run build        # tsup -> dist/scaffold.mjs
 ```
 
-**Always run `bun run build` and commit the resulting `dist/scaffold.mjs` after editing `scaffold.ts`.** The skill's `dist/` output is what actually ships and runs — agents invoke the built artifact, not the TypeScript source — so an unbuilt change to `scaffold.ts` has no effect until you rebuild.
+**Always run `pnpm run build` and commit the resulting `dist/scaffold.mjs` after editing `scaffold.ts`.** The skill's `dist/` output is what actually ships and runs — agents invoke the built artifact, not the TypeScript source — so an unbuilt change to `scaffold.ts` has no effect until you rebuild.

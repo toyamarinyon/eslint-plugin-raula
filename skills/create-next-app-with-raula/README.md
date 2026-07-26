@@ -126,10 +126,10 @@ and network-dependent.
 From the monorepo root:
 
 ```bash
-bun install
-bun run typecheck --filter create-next-app-with-raula
-bun test --filter create-next-app-with-raula
-bun run build --filter create-next-app-with-raula   # -> dist/scaffold.mjs
+pnpm install
+pnpm --filter create-next-app-with-raula run typecheck
+pnpm --filter create-next-app-with-raula run test
+pnpm --filter create-next-app-with-raula run build   # -> dist/scaffold.mjs
 ```
 
 `dist/scaffold.mjs` is what the skill actually runs and is committed to the

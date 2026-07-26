@@ -1,22 +1,18 @@
 {
 	"name": "raula-repo",
 	"private": true,
-	"packageManager": "bun@1.3.13",
-	"workspaces": [
-		"apps/*",
-		"packages/*",
-		"skills/*"
-	],
+	"packageManager": "pnpm@11.17.0",
 	"scripts": {
 		"build": "turbo build --filter=!./apps/*",
 		"lint": "turbo lint --filter=!./apps/*",
 		"format": "biome check --write .",
 		"format:check": "biome check .",
-		"test": "bun test packages apps skills",
-		"test:raula-rules": "bun test apps/raula-rules-fixture"
+		"test": "vitest run",
+		"test:raula-rules": "vitest run apps/raula-rules-fixture"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.14",
-		"turbo": "2.9.8"
+		"turbo": "2.9.8",
+		"vitest": "4.1.10"
 	}
 }

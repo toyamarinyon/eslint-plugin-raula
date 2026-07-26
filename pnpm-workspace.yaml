@@ -1,0 +1,13 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "skills/*"
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+  - unrs-resolver

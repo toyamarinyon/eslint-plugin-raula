@@ -51,22 +51,22 @@ This repository (formerly `eslint-plugin-raula`) is a monorepo bundling:
 
 ## Development
 
-Bun workspaces + Turborepo. From the repo root:
+pnpm workspaces + Turborepo. From the repo root:
 
 ```bash
-bun install
-bun run build   # builds every package/skill with a build script
-bun run lint    # turbo lint (excludes apps/*)
-bun run format  # biome check --write .
-bun test        # packages, apps, and skills
+pnpm install
+pnpm run build   # builds every package/skill with a build script
+pnpm run lint    # turbo lint (excludes apps/*)
+pnpm run format  # biome check --write .
+pnpm test        # packages, apps, and skills
 ```
 
 Before changing rule behavior in any package, rebuild it so `REFERENCE.md`/
 `references/*.md` (or, for the skill, `dist/scaffold.mjs`) stay current:
 
 ```bash
-bun run build --filter eslint-plugin-raula
-bun run build --filter stylelint-plugin-raula
-bun run build --filter oxlint-plugin-raula
-bun run build --filter create-next-app-with-raula
+pnpm run build --filter eslint-plugin-raula
+pnpm run build --filter stylelint-plugin-raula
+pnpm run build --filter oxlint-plugin-raula
+pnpm run build --filter create-next-app-with-raula
 ```

@@ -1,14 +1,15 @@
-import { expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { expect, test } from "vitest";
 
-const packageRoot = path.resolve(import.meta.dir, "..");
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const packageRoot = path.resolve(currentDir, "..");
 
 test("raula oxlint plugin reports fixture violations", () => {
 	const result = spawnSync(
-		process.execPath,
+		"node_modules/.bin/oxlint",
 		[
-			"node_modules/.bin/oxlint",
 			"--config",
 			"fixtures/.oxlintrc.json",
 			"--format",

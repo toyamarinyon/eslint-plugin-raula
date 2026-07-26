@@ -1,15 +1,15 @@
-import { expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { expect, test } from "vitest";
+
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
 test("raula oxlint plugin reports fixture violations", () => {
-	const result = spawnSync(
-		process.execPath,
-		["node_modules/.bin/oxlint", "--format", "json"],
-		{
-			cwd: import.meta.dir,
-			encoding: "utf8",
-		},
-	);
+	const result = spawnSync("node_modules/.bin/oxlint", ["--format", "json"], {
+		cwd: currentDir,
+		encoding: "utf8",
+	});
 
 	expect(result.error).toBeUndefined();
 	expect(result.status).not.toBe(0);

@@ -1,8 +1,11 @@
-import { expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import path, { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { expect, test } from "vitest";
+
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
 test("raula css preset reports fixture violations", async () => {
 	const outputDir = await mkdtemp(join(tmpdir(), "raula-stylelint-output-"));
@@ -10,17 +13,10 @@ test("raula css preset reports fixture violations", async () => {
 
 	try {
 		const result = spawnSync(
-			process.execPath,
-			[
-				"node_modules/.bin/stylelint",
-				"app/globals.css",
-				"--formatter",
-				"json",
-				"--output-file",
-				outputFile,
-			],
+			"node_modules/.bin/stylelint",
+			["app/globals.css", "--formatter", "json", "--output-file", outputFile],
 			{
-				cwd: import.meta.dir,
+				cwd: currentDir,
 				encoding: "utf8",
 			},
 		);
@@ -30,13 +26,14 @@ test("raula css preset reports fixture violations", async () => {
 
 		const output = await readFile(outputFile, "utf8");
 		const results = JSON.parse(output);
-		const reports = results.flatMap((fileResult) =>
-			fileResult.warnings
-				.filter((warning) => warning.rule?.startsWith("raula/"))
-				.map((warning) => ({
-					source: fileResult.source,
-					warning,
-				})),
+		const reports = results.flatMap(
+			(fileResult: { source: string; warnings: Array<{ rule?: string }> }) =>
+				fileResult.warnings
+					.filter((warning) => warning.rule?.startsWith("raula/"))
+					.map((warning) => ({
+						source: fileResult.source,
+						warning,
+					})),
 		);
 
 		expect(reports).toHaveLength(3);
