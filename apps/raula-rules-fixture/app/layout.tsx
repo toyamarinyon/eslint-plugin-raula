@@ -1,16 +1,6 @@
-async function getLocale() {
-	return "en";
-}
-
-export default async function Layout({
-	children,
-}: {
-	children: React.ReactNode;
-}) {
-	const locale = await getLocale();
-
+export default function Layout({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang={locale}>
+		<html lang="en">
 			<body>{children}</body>
 		</html>
 	);

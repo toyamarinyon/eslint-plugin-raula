@@ -1,6 +1,8 @@
+import styles from "./page.module.css";
+
 export default function Page() {
 	return (
-		<main className="text-[16px]" style={{ color: "red" }}>
+		<main className={styles.wrapper} style={{ color: "red" }}>
 			Fixture
 		</main>
 	);

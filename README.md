@@ -44,7 +44,7 @@ This repository (formerly `eslint-plugin-raula`) is a monorepo bundling:
 │   ├── stylelint-plugin-raula
 │   └── oxlint-plugin-raula
 ├── apps
-│   └── raula-rules-fixture       # end-to-end fixture exercising every rule
+│   └── raula-rules-fixture       # end-to-end fixture: oxlint + stylelint + oxfmt
 └── skills
     └── create-next-app-with-raula
 ```

@@ -1,0 +1,8 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"jsPlugins": ["./node_modules/oxlint-plugin-raula/index.mjs"],
+	"rules": {
+		"raula/no-inline-style-prop": "error",
+		"raula/no-css-modules": "error"
+	}
+}

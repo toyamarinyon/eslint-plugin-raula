@@ -1,0 +1,6 @@
+// oxfmt config — matches this monorepo's tab-indent convention.
+{
+	"useTabs": true,
+	// Enable import sorting with oxfmt's standard/default grouping.
+	"sortImports": true
+}
