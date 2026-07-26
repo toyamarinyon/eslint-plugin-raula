@@ -1,0 +1,7 @@
+{
+	"jsPlugins": ["./index.mjs"],
+	"rules": {
+		"raula/no-inline-style-prop": "error",
+		"raula/no-css-modules": "error"
+	}
+}

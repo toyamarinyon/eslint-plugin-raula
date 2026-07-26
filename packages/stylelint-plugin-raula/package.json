@@ -1,0 +1,69 @@
+{
+	"name": "stylelint-plugin-raula",
+	"version": "0.0.1",
+	"description": "Opinionated stylelint rules and config presets for Tailwind CSS theme and globals.css standards.",
+	"keywords": [
+		"stylelint",
+		"stylelint-plugin",
+		"nextjs",
+		"tailwindcss",
+		"design-system"
+	],
+	"homepage": "https://github.com/toyamarinyon/raula/tree/main/packages/stylelint-plugin-raula",
+	"bugs": {
+		"url": "https://github.com/toyamarinyon/raula/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/toyamarinyon/raula.git",
+		"directory": "packages/stylelint-plugin-raula"
+	},
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"bin": {
+		"stylelint-plugin-raula": "bin/stylelint-plugin-raula.js"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		},
+		"./css": {
+			"types": "./dist/css.d.ts",
+			"import": "./dist/css.js",
+			"default": "./dist/css.js"
+		}
+	},
+	"files": [
+		"dist",
+		"REFERENCE.md",
+		"references",
+		"bin"
+	],
+	"sideEffects": false,
+	"scripts": {
+		"generate-reference": "bun run scripts/generate-reference.ts",
+		"build": "bun run generate-reference && tsup",
+		"prepublishOnly": "bun run build"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"peerDependencies": {
+		"postcss": "^8.5.16",
+		"stylelint": "^17"
+	},
+	"dependencies": {
+		"postcss-selector-parser": "7.1.4"
+	},
+	"devDependencies": {
+		"@types/bun": "1.3.14",
+		"@types/node": "20.19.39",
+		"postcss": "8.5.22",
+		"stylelint": "17.14.1",
+		"tsup": "8.5.1",
+		"typescript": "^5.9.3"
+	}
+}
