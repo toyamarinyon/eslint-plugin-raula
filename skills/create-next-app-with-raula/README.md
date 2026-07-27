@@ -69,7 +69,7 @@ The skill supports exactly four user-configurable inputs:
 | Target directory | A directory path | `.` |
 | Package manager | `pnpm`, `npm`, `yarn`, or `bun` | `pnpm` |
 | Next.js version | A dist-tag such as `latest`, `preview`, or `canary`, or an exact version | `latest` |
-| Lint/format toolchain | `eslint` (eslint-plugin-raula + Biome) or `oxlint` (oxlint-plugin-raula + stylelint-plugin-raula + oxfmt) | `eslint` |
+| Lint/format toolchain | `oxlint` (oxlint-plugin-raula + stylelint-plugin-raula + oxfmt) or `eslint` (eslint-plugin-raula + Biome) | `oxlint` |
 
 For example:
 
@@ -103,7 +103,7 @@ the empty template, App Router, ESLint, Tailwind CSS, React Compiler, and
 has no non-interactive "no linter" flag, so omitting both `--eslint` and
 `--biome` still installs ESLint from saved/default preferences.
 
-For the **`eslint`** toolchain (default), the script deliberately omits
+For the **`eslint`** toolchain, the script deliberately omits
 `--biome`: `create-next-app` treats "linter" as a single choice between
 ESLint and Biome, so passing both flags together silently drops Biome (no
 `biome.json`, no dependency, no format script). Biome is set up separately
@@ -115,7 +115,7 @@ exact dev dependency and runs its own installer (`eslint-plugin-raula install
 --eslint --agents-md`), and adds `@biomejs/biome` as an exact dev dependency
 and writes `biome.json` plus a `format` script.
 
-For the **`oxlint`** toolchain, the script removes the ESLint that
+For the **`oxlint`** toolchain (default), the script removes the ESLint that
 create-next-app just installed (`eslint`, `eslint-config-next`,
 `eslint.config.mjs`), adds `oxlint`, `oxlint-plugin-raula`, `stylelint`,
 `stylelint-plugin-raula`, and `oxfmt` as exact dev dependencies, writes

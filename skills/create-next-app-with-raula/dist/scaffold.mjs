@@ -106,7 +106,7 @@ function parseArgs(argv) {
     dir: ".",
     pm: "pnpm",
     nextVersion: "latest",
-    toolchain: "eslint"
+    toolchain: "oxlint"
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];

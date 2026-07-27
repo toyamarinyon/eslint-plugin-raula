@@ -18,10 +18,9 @@ This repository (formerly `eslint-plugin-raula`) is a monorepo bundling:
   deliberately not ported — see its README.
 - **[`create-next-app-with-raula`](./skills/create-next-app-with-raula)** — an
   agent skill that scaffolds a new Next.js app and wires up a raula
-  lint/format toolchain (`eslint-plugin-raula` + Biome, or
-  `oxlint-plugin-raula` + `stylelint-plugin-raula` + oxfmt) and Cache
-  Components when supported, via a deterministic script, not
-  agent-improvised commands.
+  lint/format toolchain (`oxlint-plugin-raula` + `stylelint-plugin-raula` +
+  oxfmt by default, or `eslint-plugin-raula` + Biome) and Cache Components
+  when supported, via a deterministic script, not agent-improvised commands.
 
 ## Which package do I want?
 

@@ -18,7 +18,7 @@ describe("parseArgs", () => {
 			dir: ".",
 			pm: "pnpm",
 			nextVersion: "latest",
-			toolchain: "eslint",
+			toolchain: "oxlint",
 		});
 	});
 
@@ -32,13 +32,13 @@ describe("parseArgs", () => {
 				"--next-version",
 				"preview",
 				"--toolchain",
-				"oxlint",
+				"eslint",
 			]),
 		).toEqual({
 			dir: "./my-app",
 			pm: "npm",
 			nextVersion: "preview",
-			toolchain: "oxlint",
+			toolchain: "eslint",
 		});
 	});
 
