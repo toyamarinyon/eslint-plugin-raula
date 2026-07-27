@@ -4,8 +4,8 @@ An agent skill for bootstrapping a new Next.js app with
 [`eslint-plugin-raula`](https://www.npmjs.com/package/eslint-plugin-raula).
 
 It is intentionally small: one repeatable setup flow for starting a Next.js app
-in a target directory, installing the raula ESLint plugin, initializing Biome,
-running the feedback loops, and committing the result.
+in a target directory, wiring up a raula lint/format toolchain, running the
+feedback loops, and committing the result.
 
 ## Why This Exists
 
@@ -14,8 +14,8 @@ commands every time:
 
 - which `create-next-app` flags to use
 - how to handle a user-specified target directory
-- when to install `eslint-plugin-raula`
-- how to initialize Biome
+- which lint/format toolchain to wire up (`eslint-plugin-raula` + Biome, or
+  `oxlint-plugin-raula` + `stylelint-plugin-raula` + oxfmt)
 - which checks to run before the first commit
 
 This skill captures that flow so an agent can run it consistently without
@@ -25,9 +25,8 @@ re-deriving the setup each time.
 
 - **[create-next-app-with-raula](./SKILL.md)** -
   Scaffold a Next.js app in a user-specified directory, or the current directory
-  when no target path is given, using `create-next-app`; then install and
-  initialize `eslint-plugin-raula`, initialize Biome, run lint and format, and
-  commit the initialized app.
+  when no target path is given, using `create-next-app`; then wire up a raula
+  lint/format toolchain, run lint and format, and commit the initialized app.
 
 ## Quickstart
 
@@ -63,13 +62,14 @@ directory is the project directory.
 
 ### Supported inputs
 
-The skill supports exactly three user-configurable inputs:
+The skill supports exactly four user-configurable inputs:
 
 | Input | Accepted values | Default |
 |---|---|---|
 | Target directory | A directory path | `.` |
 | Package manager | `pnpm`, `npm`, `yarn`, or `bun` | `pnpm` |
 | Next.js version | A dist-tag such as `latest`, `preview`, or `canary`, or an exact version | `latest` |
+| Lint/format toolchain | `eslint` (eslint-plugin-raula + Biome) or `oxlint` (oxlint-plugin-raula + stylelint-plugin-raula + oxfmt) | `eslint` |
 
 For example:
 
@@ -77,42 +77,62 @@ For example:
 create a Next.js preview app with raula in ./my-app using bun
 ```
 
+```text
+create a Next.js app with raula in ./my-app using the oxlint toolchain
+```
+
 All other scaffold choices are fixed by the skill.
 
 ## Workflow
 
-The agent's job is to pick the target directory, package manager, and Next.js
-version, decide whether an existing target directory is safe to scaffold
-into, then run a deterministic script — the built `dist/scaffold.mjs`, next
-to the skill — and independently verify the result before reporting back.
-The script, not agent-improvised shell commands, owns every
-package-manager-specific command and every config-file edit, so re-runs are
-consistent regardless of which model invokes the skill.
+The agent's job is to pick the target directory, package manager, Next.js
+version, and toolchain, decide whether an existing target directory is safe
+to scaffold into, then run a deterministic script — the built
+`dist/scaffold.mjs`, next to the skill — and independently verify the result
+before reporting back. The script, not agent-improvised shell commands, owns
+every package-manager-specific command and every config-file edit, so
+re-runs are consistent regardless of which model invokes the skill.
 
 ```bash
-node dist/scaffold.mjs --dir <target-directory-or-.> --pm <pnpm|npm|yarn|bun> --next-version <tag-or-version>
+node dist/scaffold.mjs --dir <target-directory-or-.> --pm <pnpm|npm|yarn|bun> --next-version <tag-or-version> --toolchain <eslint|oxlint>
 ```
 
 It scaffolds with `create-next-app@<version>` using fixed flags — TypeScript,
 the empty template, App Router, ESLint, Tailwind CSS, React Compiler, and
-`--skip-install`. It deliberately omits `--biome`: `create-next-app` treats
-"linter" as a single choice between ESLint and Biome, so passing both flags
-together silently drops Biome (no `biome.json`, no dependency, no format
-script). Biome is set up separately as a **formatter only** — its own linter
-is disabled in the generated `biome.json` — so ESLint(+raula) keeps owning
-linting with no overlap.
+`--skip-install`. ESLint is always part of the initial scaffold: create-next-app
+has no non-interactive "no linter" flag, so omitting both `--eslint` and
+`--biome` still installs ESLint from saved/default preferences.
 
-After scaffolding, it: installs dependencies (approving `sharp` and
-`unrs-resolver` build scripts first if the package manager is pnpm), adds
-`eslint-plugin-raula` as an exact dev dependency and runs its own installer
-(`eslint-plugin-raula install --eslint --agents-md`), checks the *resolved*
-Next.js version and adds `cacheComponents: true` to `next.config.ts` when
-it's `16.3.0` or later (this is additive to `eslint-plugin-raula`'s own
-`no-await-in-layout` rule, not a replacement — Cache Components catches a
-broader class of blocking-render issues at build time), adds
-`@biomejs/biome` as an exact dev dependency and writes `biome.json` plus a
-`format` script, runs `lint` then `format`, and commits everything as
-`initialized raula`.
+For the **`eslint`** toolchain (default), the script deliberately omits
+`--biome`: `create-next-app` treats "linter" as a single choice between
+ESLint and Biome, so passing both flags together silently drops Biome (no
+`biome.json`, no dependency, no format script). Biome is set up separately
+as a **formatter only** — its own linter is disabled in the generated
+`biome.json` — so ESLint(+raula) keeps owning linting with no overlap. It
+installs dependencies (approving `sharp` and `unrs-resolver` build scripts
+first if the package manager is pnpm), adds `eslint-plugin-raula` as an
+exact dev dependency and runs its own installer (`eslint-plugin-raula install
+--eslint --agents-md`), and adds `@biomejs/biome` as an exact dev dependency
+and writes `biome.json` plus a `format` script.
+
+For the **`oxlint`** toolchain, the script removes the ESLint that
+create-next-app just installed (`eslint`, `eslint-config-next`,
+`eslint.config.mjs`), adds `oxlint`, `oxlint-plugin-raula`, `stylelint`,
+`stylelint-plugin-raula`, and `oxfmt` as exact dev dependencies, writes
+`.oxlintrc.json` extending `oxlint-plugin-raula`'s shareable preset, writes a
+minimal `stylelint.config.mjs` and runs `stylelint-plugin-raula install
+--stylelint --agents-md` to wire up the CSS preset and AGENTS.md, writes
+`.oxfmtrc.jsonc` (tabs, standard import sorting), and points the `lint`,
+`lint:css`, and `format` scripts at `oxlint`, `stylelint`, and `oxfmt`.
+`no-await-in-layout` isn't ported to `oxlint-plugin-raula`, so Cache
+Components (below) is this toolchain's only guard against that class of bug.
+
+Regardless of toolchain, the script checks the *resolved* Next.js version and
+adds `cacheComponents: true` to `next.config.ts` when it's `16.3.0` or later
+(this is additive to `eslint-plugin-raula`'s own `no-await-in-layout` rule,
+not a replacement — Cache Components catches a broader class of
+blocking-render issues at build time), runs `lint` (and, for `oxlint`,
+`lint:css`) then `format`, and commits everything as `initialized raula`.
 
 ## Development
 

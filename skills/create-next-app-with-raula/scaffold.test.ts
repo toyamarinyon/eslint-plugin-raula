@@ -5,6 +5,8 @@ import {
 	insertCacheComponents,
 	MIN_CACHE_COMPONENTS_VERSION,
 	meetsMinimumVersion,
+	OXFMT_CONFIG,
+	OXLINT_CONFIG,
 	PM_COMMANDS,
 	parseArgs,
 	parseVersionTriple,
@@ -16,10 +18,11 @@ describe("parseArgs", () => {
 			dir: ".",
 			pm: "pnpm",
 			nextVersion: "latest",
+			toolchain: "eslint",
 		});
 	});
 
-	test("parses all three flags", () => {
+	test("parses all four flags", () => {
 		expect(
 			parseArgs([
 				"--dir",
@@ -28,13 +31,26 @@ describe("parseArgs", () => {
 				"npm",
 				"--next-version",
 				"preview",
+				"--toolchain",
+				"oxlint",
 			]),
-		).toEqual({ dir: "./my-app", pm: "npm", nextVersion: "preview" });
+		).toEqual({
+			dir: "./my-app",
+			pm: "npm",
+			nextVersion: "preview",
+			toolchain: "oxlint",
+		});
 	});
 
 	test("rejects an unsupported package manager", () => {
 		expect(() => parseArgs(["--pm", "yolo"])).toThrow(
 			'Unsupported package manager "yolo"',
+		);
+	});
+
+	test("rejects an unsupported toolchain", () => {
+		expect(() => parseArgs(["--toolchain", "biome"])).toThrow(
+			'Unsupported toolchain "biome"',
 		);
 	});
 
@@ -44,11 +60,12 @@ describe("parseArgs", () => {
 });
 
 describe("PM_COMMANDS", () => {
-	test("every package manager defines all five command builders", () => {
+	test("every package manager defines all six command builders", () => {
 		for (const [pm, commands] of Object.entries(PM_COMMANDS)) {
 			expect(typeof commands.scaffold).toBe("function");
 			expect(typeof commands.install).toBe("function");
 			expect(typeof commands.addExactDev).toBe("function");
+			expect(typeof commands.removeDev).toBe("function");
 			expect(typeof commands.runBin).toBe("function");
 			expect(typeof commands.runScript).toBe("function");
 			expect(commands.install()[0]).toBe(pm === "npm" ? "npm" : pm);
@@ -74,6 +91,54 @@ describe("PM_COMMANDS", () => {
 		expect(
 			PM_COMMANDS.bun.scaffold("create-next-app@latest", "my-app"),
 		).toEqual(["bunx", ["create-next-app@latest", "my-app", "--use-bun"]]);
+	});
+
+	test("addExactDev adds every package in one command", () => {
+		expect(
+			PM_COMMANDS.pnpm.addExactDev(["oxlint@latest", "oxfmt@latest"]),
+		).toEqual([
+			"pnpm",
+			[
+				"add",
+				"-DE",
+				"oxlint@latest",
+				"oxfmt@latest",
+				"--config.minimumReleaseAge=0",
+			],
+		]);
+	});
+
+	test("removeDev uses each package manager's own uninstall verb", () => {
+		expect(PM_COMMANDS.pnpm.removeDev(["eslint"])).toEqual([
+			"pnpm",
+			["remove", "eslint"],
+		]);
+		expect(PM_COMMANDS.npm.removeDev(["eslint"])).toEqual([
+			"npm",
+			["uninstall", "eslint"],
+		]);
+		expect(PM_COMMANDS.yarn.removeDev(["eslint"])).toEqual([
+			"yarn",
+			["remove", "eslint"],
+		]);
+		expect(PM_COMMANDS.bun.removeDev(["eslint"])).toEqual([
+			"bun",
+			["remove", "eslint"],
+		]);
+	});
+});
+
+describe("OXLINT_CONFIG", () => {
+	test("extends oxlint-plugin-raula's shareable preset", () => {
+		expect(OXLINT_CONFIG).toEqual({
+			extends: ["./node_modules/oxlint-plugin-raula/.oxlintrc.json"],
+		});
+	});
+});
+
+describe("OXFMT_CONFIG", () => {
+	test("uses tabs and enables standard import sorting", () => {
+		expect(OXFMT_CONFIG).toEqual({ useTabs: true, sortImports: true });
 	});
 });
 

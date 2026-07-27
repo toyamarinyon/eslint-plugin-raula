@@ -20,7 +20,8 @@ type Command = [string, string[]];
 type PmCommands = {
 	scaffold: (pkg: string, target: string) => Command;
 	install: () => Command;
-	addExactDev: (pkg: string) => Command;
+	addExactDev: (pkgs: string[]) => Command;
+	removeDev: (pkgs: string[]) => Command;
 	runBin: (pkg: string, args: string[]) => Command;
 	runScript: (script: string) => Command;
 };
@@ -29,31 +30,46 @@ export const PM_COMMANDS: Record<PackageManager, PmCommands> = {
 	pnpm: {
 		scaffold: (pkg, target) => ["pnpm", ["create", pkg, target, "--use-pnpm"]],
 		install: () => ["pnpm", ["install"]],
-		addExactDev: (pkg) => [
+		addExactDev: (pkgs) => [
 			"pnpm",
-			["add", "-DE", pkg, "--config.minimumReleaseAge=0"],
+			["add", "-DE", ...pkgs, "--config.minimumReleaseAge=0"],
 		],
-		runBin: (pkg, args) => ["pnpm", [pkg, ...args]],
-		runScript: (script) => ["pnpm", [script]],
+		removeDev: (pkgs) => ["pnpm", ["remove", ...pkgs]],
+		// `--config.minimumReleaseAge=0` must precede the bin name here — pnpm
+		// only parses its own global flags before an unrecognized subcommand
+		// (which is how `pnpm <bin>` resolves to running that bin). Needed
+		// because `pnpm <bin> ...` runs pnpm's supply-chain deps-status check
+		// against the lockfile, which would otherwise reject the
+		// just-published raula packages `addExactDev` already added.
+		runBin: (pkg, args) => [
+			"pnpm",
+			["--config.minimumReleaseAge=0", pkg, ...args],
+		],
+		// Same reasoning as runBin above: `pnpm <script>` re-runs the
+		// supply-chain deps-status check too.
+		runScript: (script) => ["pnpm", ["--config.minimumReleaseAge=0", script]],
 	},
 	npm: {
 		scaffold: (pkg, target) => ["npx", [pkg, target, "--use-npm"]],
 		install: () => ["npm", ["install"]],
-		addExactDev: (pkg) => ["npm", ["install", "-D", "-E", pkg]],
+		addExactDev: (pkgs) => ["npm", ["install", "-D", "-E", ...pkgs]],
+		removeDev: (pkgs) => ["npm", ["uninstall", ...pkgs]],
 		runBin: (pkg, args) => ["npx", [pkg, ...args]],
 		runScript: (script) => ["npm", ["run", script]],
 	},
 	yarn: {
 		scaffold: (pkg, target) => ["yarn", ["create", pkg, target, "--use-yarn"]],
 		install: () => ["yarn", ["install"]],
-		addExactDev: (pkg) => ["yarn", ["add", "-D", "-E", pkg]],
+		addExactDev: (pkgs) => ["yarn", ["add", "-D", "-E", ...pkgs]],
+		removeDev: (pkgs) => ["yarn", ["remove", ...pkgs]],
 		runBin: (pkg, args) => ["yarn", [pkg, ...args]],
 		runScript: (script) => ["yarn", [script]],
 	},
 	bun: {
 		scaffold: (pkg, target) => ["bunx", [pkg, target, "--use-bun"]],
 		install: () => ["bun", ["install"]],
-		addExactDev: (pkg) => ["bun", ["add", "-d", "--exact", pkg]],
+		addExactDev: (pkgs) => ["bun", ["add", "-d", "--exact", ...pkgs]],
+		removeDev: (pkgs) => ["bun", ["remove", ...pkgs]],
 		runBin: (pkg, args) => ["bunx", [pkg, ...args]],
 		runScript: (script) => ["bun", ["run", script]],
 	},
@@ -123,14 +139,24 @@ export const MIN_CACHE_COMPONENTS_VERSION: [number, number, number] = [
 	16, 3, 0,
 ];
 
+export type Toolchain = "eslint" | "oxlint";
+
+export const TOOLCHAINS: Toolchain[] = ["eslint", "oxlint"];
+
 export type ScaffoldArgs = {
 	dir: string;
 	pm: PackageManager;
 	nextVersion: string;
+	toolchain: Toolchain;
 };
 
 export function parseArgs(argv: string[]): ScaffoldArgs {
-	const args: ScaffoldArgs = { dir: ".", pm: "pnpm", nextVersion: "latest" };
+	const args: ScaffoldArgs = {
+		dir: ".",
+		pm: "pnpm",
+		nextVersion: "latest",
+		toolchain: "eslint",
+	};
 	for (let i = 0; i < argv.length; i += 1) {
 		const arg = argv[i];
 		if (arg === "--dir") {
@@ -139,6 +165,8 @@ export function parseArgs(argv: string[]): ScaffoldArgs {
 			args.pm = (argv[++i] ?? "") as PackageManager;
 		} else if (arg === "--next-version") {
 			args.nextVersion = argv[++i] ?? "";
+		} else if (arg === "--toolchain") {
+			args.toolchain = (argv[++i] ?? "") as Toolchain;
 		} else {
 			throw new Error(`Unknown argument: ${arg}`);
 		}
@@ -146,6 +174,11 @@ export function parseArgs(argv: string[]): ScaffoldArgs {
 	if (!(args.pm in PM_COMMANDS)) {
 		throw new Error(
 			`Unsupported package manager "${args.pm}". Use one of: ${Object.keys(PM_COMMANDS).join(", ")}`,
+		);
+	}
+	if (!TOOLCHAINS.includes(args.toolchain)) {
+		throw new Error(
+			`Unsupported toolchain "${args.toolchain}". Use one of: ${TOOLCHAINS.join(", ")}`,
 		);
 	}
 	return args;
@@ -336,6 +369,122 @@ function writeBiomeConfig(appDir: string): void {
 	console.log('Added the "format" script to package.json.');
 }
 
+function updatePackageJsonScripts(
+	appDir: string,
+	scripts: Record<string, string>,
+): void {
+	const packageJsonPath = path.join(appDir, "package.json");
+	const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+	packageJson.scripts ??= {};
+	Object.assign(packageJson.scripts, scripts);
+	fs.writeFileSync(
+		packageJsonPath,
+		`${JSON.stringify(packageJson, null, "\t")}\n`,
+		"utf8",
+	);
+}
+
+function removeEslintConfig(appDir: string): void {
+	const configPath = path.join(appDir, "eslint.config.mjs");
+	if (fs.existsSync(configPath)) {
+		fs.rmSync(configPath);
+		console.log("Removed eslint.config.mjs.");
+	}
+}
+
+// create-next-app has no way to scaffold without ESLint (there's no
+// non-interactive "no linter" flag — omitting both --eslint and --biome
+// still installs ESLint from saved/default preferences). So the oxlint
+// toolchain scaffolds with ESLint like the default path, then strips it.
+export const OXLINT_CONFIG = {
+	extends: ["./node_modules/oxlint-plugin-raula/.oxlintrc.json"],
+};
+
+function writeOxlintConfig(appDir: string): void {
+	fs.writeFileSync(
+		path.join(appDir, ".oxlintrc.json"),
+		`${JSON.stringify(OXLINT_CONFIG, null, "\t")}\n`,
+		"utf8",
+	);
+	console.log("Wrote .oxlintrc.json extending oxlint-plugin-raula's preset.");
+}
+
+// stylelint-plugin-raula's own installer requires a stylelint config file to
+// already exist (it edits `extends`, it doesn't create the file), so write a
+// minimal one first and let the installer wire up the raula preset + AGENTS.md.
+function writeInitialStylelintConfig(appDir: string): void {
+	fs.writeFileSync(
+		path.join(appDir, "stylelint.config.mjs"),
+		"export default {};\n",
+		"utf8",
+	);
+}
+
+export const OXFMT_CONFIG = {
+	useTabs: true,
+	sortImports: true,
+};
+
+function writeOxfmtConfig(appDir: string): void {
+	fs.writeFileSync(
+		path.join(appDir, ".oxfmtrc.jsonc"),
+		`${JSON.stringify(OXFMT_CONFIG, null, "\t")}\n`,
+		"utf8",
+	);
+	console.log("Wrote .oxfmtrc.jsonc (tabs, standard import sorting).");
+}
+
+function setUpEslintToolchain(pm: PmCommands, appDir: string): void {
+	run(
+		"add eslint-plugin-raula",
+		pm.addExactDev(["eslint-plugin-raula@latest"]),
+		appDir,
+	);
+	run(
+		"eslint-plugin-raula install",
+		pm.runBin("eslint-plugin-raula", ["install", "--eslint", "--agents-md"]),
+		appDir,
+	);
+	run("add @biomejs/biome", pm.addExactDev(["@biomejs/biome@latest"]), appDir);
+	writeBiomeConfig(appDir);
+}
+
+function setUpOxlintToolchain(pm: PmCommands, appDir: string): void {
+	run("remove eslint", pm.removeDev(["eslint", "eslint-config-next"]), appDir);
+	removeEslintConfig(appDir);
+
+	run(
+		"add oxlint toolchain",
+		pm.addExactDev([
+			"oxlint@latest",
+			"oxlint-plugin-raula@latest",
+			"stylelint@latest",
+			"stylelint-plugin-raula@latest",
+			"oxfmt@latest",
+		]),
+		appDir,
+	);
+
+	writeOxlintConfig(appDir);
+	writeInitialStylelintConfig(appDir);
+	run(
+		"stylelint-plugin-raula install",
+		pm.runBin("stylelint-plugin-raula", [
+			"install",
+			"--stylelint",
+			"--agents-md",
+		]),
+		appDir,
+	);
+	writeOxfmtConfig(appDir);
+
+	updatePackageJsonScripts(appDir, {
+		lint: "oxlint",
+		"lint:css": "stylelint 'app/**/*.css'",
+		format: "oxfmt",
+	});
+}
+
 function main(): void {
 	const args = parseArgs(process.argv.slice(2));
 	const pm = PM_COMMANDS[args.pm];
@@ -368,17 +517,6 @@ function main(): void {
 	}
 	run("install", pm.install(), appDir);
 
-	run(
-		"add eslint-plugin-raula",
-		pm.addExactDev("eslint-plugin-raula@latest"),
-		appDir,
-	);
-	run(
-		"eslint-plugin-raula install",
-		pm.runBin("eslint-plugin-raula", ["install", "--eslint", "--agents-md"]),
-		appDir,
-	);
-
 	if (resolvedNextVersionSupportsCacheComponents(appDir)) {
 		addCacheComponentsToNextConfig(appDir);
 	} else {
@@ -387,10 +525,16 @@ function main(): void {
 		);
 	}
 
-	run("add @biomejs/biome", pm.addExactDev("@biomejs/biome@latest"), appDir);
-	writeBiomeConfig(appDir);
+	if (args.toolchain === "eslint") {
+		setUpEslintToolchain(pm, appDir);
+	} else {
+		setUpOxlintToolchain(pm, appDir);
+	}
 
 	run("lint", pm.runScript("lint"), appDir);
+	if (args.toolchain === "oxlint") {
+		run("lint:css", pm.runScript("lint:css"), appDir);
+	}
 	run("format", pm.runScript("format"), appDir);
 
 	execFileSync("git", ["add", "."], { cwd: appDir, stdio: "inherit" });

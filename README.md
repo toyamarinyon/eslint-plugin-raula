@@ -13,13 +13,15 @@ This repository (formerly `eslint-plugin-raula`) is a monorepo bundling:
   selectors, document-element styling), ported to stylelint since neither
   ESLint's CSS language plugin nor oxlint can lint CSS files as cleanly.
 - **[`oxlint-plugin-raula`](./packages/oxlint-plugin-raula)** — an
-  experimental, unpublished port of the JS/TSX rules to oxlint's JS Plugin
-  API (`no-inline-style-prop`, `no-css-modules`). `no-await-in-layout` is
+  experimental port of the JS/TSX rules to oxlint's JS Plugin API
+  (`no-inline-style-prop`, `no-css-modules`). `no-await-in-layout` is
   deliberately not ported — see its README.
 - **[`create-next-app-with-raula`](./skills/create-next-app-with-raula)** — an
-  agent skill that scaffolds a new Next.js app and wires up
-  `eslint-plugin-raula` (and Biome, and Cache Components when supported) via
-  a deterministic script, not agent-improvised commands.
+  agent skill that scaffolds a new Next.js app and wires up a raula
+  lint/format toolchain (`eslint-plugin-raula` + Biome, or
+  `oxlint-plugin-raula` + `stylelint-plugin-raula` + oxfmt) and Cache
+  Components when supported, via a deterministic script, not
+  agent-improvised commands.
 
 ## Which package do I want?
 
@@ -27,13 +29,13 @@ This repository (formerly `eslint-plugin-raula`) is a monorepo bundling:
   `eslint-plugin-raula` (JS/TSX) + `stylelint-plugin-raula` (CSS). This is
   the stable, recommended combination today.
 - Bootstrapping a brand-new app? Use the `create-next-app-with-raula` skill —
-  it installs `eslint-plugin-raula` and Biome for you.
+  it wires up either toolchain for you.
 - Already on oxlint and want to try the JS/TSX rules there? `oxlint-plugin-raula`
-  exists, but it's experimental and unpublished — read its README for the
-  rule ported (`no-css-modules`'s semantics changed: it now flags the
-  *import site* of a `*.module.css` file rather than the file itself, since
-  oxlint can't lint CSS files at all) and the one deliberately dropped in
-  favor of Next.js's own Cache Components feature.
+  is still experimental (oxlint's JS Plugin API itself is alpha) — read its
+  README for the rule ported (`no-css-modules`'s semantics changed: it now
+  flags the *import site* of a `*.module.css` file rather than the file
+  itself, since oxlint can't lint CSS files at all) and the one deliberately
+  dropped in favor of Next.js's own Cache Components feature.
 
 ## Repository Structure
 
