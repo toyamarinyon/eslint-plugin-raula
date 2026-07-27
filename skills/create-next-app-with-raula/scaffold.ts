@@ -495,20 +495,24 @@ function main(): void {
 	const appDir = resolvedTarget;
 
 	if (args.pm === "pnpm") {
-		// A fresh install always reports ignored build scripts (e.g. `sharp`,
-		// and `unrs-resolver` when ESLint is present) and exits non-zero — and
-		// `pnpm approve-builds` has nothing to approve until a lockfile exists
-		// flagging them as pending. So: install once (expecting that failure),
-		// approve the builds, then install again so the build scripts actually
-		// run. `--all` approves whatever's pending instead of a hardcoded
-		// package list, since which packages need approval depends on the
-		// toolchain (unrs-resolver is only a dependency of the ESLint stack).
+		// A fresh install always reports ignored build scripts and exits
+		// non-zero — and `pnpm approve-builds` has nothing to approve until a
+		// lockfile exists flagging them as pending. So: install once
+		// (expecting that failure), approve builds, then install again so
+		// they actually run. The list is a fixed, reviewed allowlist per
+		// toolchain rather than `--all`, so a build script from some
+		// unexpected transitive dependency never gets silently trusted.
+		// `unrs-resolver` is only pulled in by the ESLint/eslint-config-next
+		// stack — naming it for the oxlint toolchain would fail outright
+		// (`pnpm approve-builds` errors if a named package isn't pending).
+		const buildsToApprove =
+			args.toolchain === "eslint" ? ["sharp", "unrs-resolver"] : ["sharp"];
 		run("install (pre-approval)", pm.install(), appDir, {
 			allowFailure: true,
 		});
 		run(
 			"approve builds",
-			["pnpm", ["approve-builds", "--all"]],
+			["pnpm", ["approve-builds", ...buildsToApprove]],
 			appDir,
 		);
 	}

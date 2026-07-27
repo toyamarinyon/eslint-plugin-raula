@@ -389,12 +389,13 @@ function main() {
   );
   const appDir = resolvedTarget;
   if (args.pm === "pnpm") {
+    const buildsToApprove = args.toolchain === "eslint" ? ["sharp", "unrs-resolver"] : ["sharp"];
     run("install (pre-approval)", pm.install(), appDir, {
       allowFailure: true
     });
     run(
       "approve builds",
-      ["pnpm", ["approve-builds", "--all"]],
+      ["pnpm", ["approve-builds", ...buildsToApprove]],
       appDir
     );
   }
