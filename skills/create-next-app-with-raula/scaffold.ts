@@ -21,7 +21,6 @@ type PmCommands = {
 	scaffold: (pkg: string, target: string) => Command;
 	install: () => Command;
 	addExactDev: (pkgs: string[]) => Command;
-	removeDev: (pkgs: string[]) => Command;
 	runBin: (pkg: string, args: string[]) => Command;
 	runScript: (script: string) => Command;
 };
@@ -34,7 +33,6 @@ export const PM_COMMANDS: Record<PackageManager, PmCommands> = {
 			"pnpm",
 			["add", "-DE", ...pkgs, "--config.minimumReleaseAge=0"],
 		],
-		removeDev: (pkgs) => ["pnpm", ["remove", ...pkgs]],
 		// `--config.minimumReleaseAge=0` must precede the bin name here — pnpm
 		// only parses its own global flags before an unrecognized subcommand
 		// (which is how `pnpm <bin>` resolves to running that bin). Needed
@@ -53,7 +51,6 @@ export const PM_COMMANDS: Record<PackageManager, PmCommands> = {
 		scaffold: (pkg, target) => ["npx", [pkg, target, "--use-npm"]],
 		install: () => ["npm", ["install"]],
 		addExactDev: (pkgs) => ["npm", ["install", "-D", "-E", ...pkgs]],
-		removeDev: (pkgs) => ["npm", ["uninstall", ...pkgs]],
 		runBin: (pkg, args) => ["npx", [pkg, ...args]],
 		runScript: (script) => ["npm", ["run", script]],
 	},
@@ -61,7 +58,6 @@ export const PM_COMMANDS: Record<PackageManager, PmCommands> = {
 		scaffold: (pkg, target) => ["yarn", ["create", pkg, target, "--use-yarn"]],
 		install: () => ["yarn", ["install"]],
 		addExactDev: (pkgs) => ["yarn", ["add", "-D", "-E", ...pkgs]],
-		removeDev: (pkgs) => ["yarn", ["remove", ...pkgs]],
 		runBin: (pkg, args) => ["yarn", [pkg, ...args]],
 		runScript: (script) => ["yarn", [script]],
 	},
@@ -69,7 +65,6 @@ export const PM_COMMANDS: Record<PackageManager, PmCommands> = {
 		scaffold: (pkg, target) => ["bunx", [pkg, target, "--use-bun"]],
 		install: () => ["bun", ["install"]],
 		addExactDev: (pkgs) => ["bun", ["add", "-d", "--exact", ...pkgs]],
-		removeDev: (pkgs) => ["bun", ["remove", ...pkgs]],
 		runBin: (pkg, args) => ["bunx", [pkg, ...args]],
 		runScript: (script) => ["bun", ["run", script]],
 	},
@@ -80,15 +75,25 @@ export const PM_COMMANDS: Record<PackageManager, PmCommands> = {
 // silently drops Biome entirely (no biome.json, no @biomejs/biome
 // dependency, no format script). Biome is set up explicitly below instead,
 // as a formatter only (ESLint keeps owning lint).
-export const SCAFFOLD_FLAGS = [
+export const BASE_SCAFFOLD_FLAGS = [
 	"--ts",
 	"--empty",
 	"--app",
-	"--eslint",
 	"--tailwind",
 	"--react-compiler",
 	"--skip-install",
 ];
+
+// create-next-app has an explicit `--no-eslint` flag that skips ESLint
+// entirely (no eslint.config.mjs, no eslint/eslint-config-next deps, no
+// lint script) — confirmed by testing the actual CLI. So the oxlint
+// toolchain scaffolds without ESLint from the start instead of stripping
+// it afterward.
+export function scaffoldFlagsFor(toolchain: Toolchain): string[] {
+	return toolchain === "eslint"
+		? [...BASE_SCAFFOLD_FLAGS, "--eslint"]
+		: [...BASE_SCAFFOLD_FLAGS, "--no-eslint"];
+}
 
 export type BiomeConfig = {
 	$schema: string;
@@ -384,18 +389,6 @@ function updatePackageJsonScripts(
 	);
 }
 
-function removeEslintConfig(appDir: string): void {
-	const configPath = path.join(appDir, "eslint.config.mjs");
-	if (fs.existsSync(configPath)) {
-		fs.rmSync(configPath);
-		console.log("Removed eslint.config.mjs.");
-	}
-}
-
-// create-next-app has no way to scaffold without ESLint (there's no
-// non-interactive "no linter" flag — omitting both --eslint and --biome
-// still installs ESLint from saved/default preferences). So the oxlint
-// toolchain scaffolds with ESLint like the default path, then strips it.
 export const OXLINT_CONFIG = {
 	extends: ["./node_modules/oxlint-plugin-raula/.oxlintrc.json"],
 };
@@ -450,9 +443,6 @@ function setUpEslintToolchain(pm: PmCommands, appDir: string): void {
 }
 
 function setUpOxlintToolchain(pm: PmCommands, appDir: string): void {
-	run("remove eslint", pm.removeDev(["eslint", "eslint-config-next"]), appDir);
-	removeEslintConfig(appDir);
-
 	run(
 		"add oxlint toolchain",
 		pm.addExactDev([
@@ -496,22 +486,29 @@ function main(): void {
 		createNextAppPackage,
 		args.dir,
 	);
-	run("scaffold", [scaffoldCmd, [...scaffoldArgs, ...SCAFFOLD_FLAGS]], cwd);
+	run(
+		"scaffold",
+		[scaffoldCmd, [...scaffoldArgs, ...scaffoldFlagsFor(args.toolchain)]],
+		cwd,
+	);
 
 	const appDir = resolvedTarget;
 
 	if (args.pm === "pnpm") {
-		// A fresh install always reports ignored build scripts for `sharp` and
-		// `unrs-resolver` and exits non-zero — and `pnpm approve-builds` has
-		// nothing to approve until a lockfile exists flagging them as pending.
-		// So: install once (expecting that failure), approve the builds, then
-		// install again so the build scripts actually run.
+		// A fresh install always reports ignored build scripts (e.g. `sharp`,
+		// and `unrs-resolver` when ESLint is present) and exits non-zero — and
+		// `pnpm approve-builds` has nothing to approve until a lockfile exists
+		// flagging them as pending. So: install once (expecting that failure),
+		// approve the builds, then install again so the build scripts actually
+		// run. `--all` approves whatever's pending instead of a hardcoded
+		// package list, since which packages need approval depends on the
+		// toolchain (unrs-resolver is only a dependency of the ESLint stack).
 		run("install (pre-approval)", pm.install(), appDir, {
 			allowFailure: true,
 		});
 		run(
 			"approve builds",
-			["pnpm", ["approve-builds", "sharp", "unrs-resolver"]],
+			["pnpm", ["approve-builds", "--all"]],
 			appDir,
 		);
 	}

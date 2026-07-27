@@ -12,7 +12,6 @@ var PM_COMMANDS = {
       "pnpm",
       ["add", "-DE", ...pkgs, "--config.minimumReleaseAge=0"]
     ],
-    removeDev: (pkgs) => ["pnpm", ["remove", ...pkgs]],
     // `--config.minimumReleaseAge=0` must precede the bin name here — pnpm
     // only parses its own global flags before an unrecognized subcommand
     // (which is how `pnpm <bin>` resolves to running that bin). Needed
@@ -31,7 +30,6 @@ var PM_COMMANDS = {
     scaffold: (pkg, target) => ["npx", [pkg, target, "--use-npm"]],
     install: () => ["npm", ["install"]],
     addExactDev: (pkgs) => ["npm", ["install", "-D", "-E", ...pkgs]],
-    removeDev: (pkgs) => ["npm", ["uninstall", ...pkgs]],
     runBin: (pkg, args) => ["npx", [pkg, ...args]],
     runScript: (script) => ["npm", ["run", script]]
   },
@@ -39,7 +37,6 @@ var PM_COMMANDS = {
     scaffold: (pkg, target) => ["yarn", ["create", pkg, target, "--use-yarn"]],
     install: () => ["yarn", ["install"]],
     addExactDev: (pkgs) => ["yarn", ["add", "-D", "-E", ...pkgs]],
-    removeDev: (pkgs) => ["yarn", ["remove", ...pkgs]],
     runBin: (pkg, args) => ["yarn", [pkg, ...args]],
     runScript: (script) => ["yarn", [script]]
   },
@@ -47,20 +44,21 @@ var PM_COMMANDS = {
     scaffold: (pkg, target) => ["bunx", [pkg, target, "--use-bun"]],
     install: () => ["bun", ["install"]],
     addExactDev: (pkgs) => ["bun", ["add", "-d", "--exact", ...pkgs]],
-    removeDev: (pkgs) => ["bun", ["remove", ...pkgs]],
     runBin: (pkg, args) => ["bunx", [pkg, ...args]],
     runScript: (script) => ["bun", ["run", script]]
   }
 };
-var SCAFFOLD_FLAGS = [
+var BASE_SCAFFOLD_FLAGS = [
   "--ts",
   "--empty",
   "--app",
-  "--eslint",
   "--tailwind",
   "--react-compiler",
   "--skip-install"
 ];
+function scaffoldFlagsFor(toolchain) {
+  return toolchain === "eslint" ? [...BASE_SCAFFOLD_FLAGS, "--eslint"] : [...BASE_SCAFFOLD_FLAGS, "--no-eslint"];
+}
 function buildBiomeConfig(schemaVersion) {
   return {
     $schema: `https://biomejs.dev/schemas/${schemaVersion}/schema.json`,
@@ -298,13 +296,6 @@ function updatePackageJsonScripts(appDir, scripts) {
     "utf8"
   );
 }
-function removeEslintConfig(appDir) {
-  const configPath = path.join(appDir, "eslint.config.mjs");
-  if (fs.existsSync(configPath)) {
-    fs.rmSync(configPath);
-    console.log("Removed eslint.config.mjs.");
-  }
-}
 var OXLINT_CONFIG = {
   extends: ["./node_modules/oxlint-plugin-raula/.oxlintrc.json"]
 };
@@ -352,8 +343,6 @@ function setUpEslintToolchain(pm, appDir) {
   writeBiomeConfig(appDir);
 }
 function setUpOxlintToolchain(pm, appDir) {
-  run("remove eslint", pm.removeDev(["eslint", "eslint-config-next"]), appDir);
-  removeEslintConfig(appDir);
   run(
     "add oxlint toolchain",
     pm.addExactDev([
@@ -393,7 +382,11 @@ function main() {
     createNextAppPackage,
     args.dir
   );
-  run("scaffold", [scaffoldCmd, [...scaffoldArgs, ...SCAFFOLD_FLAGS]], cwd);
+  run(
+    "scaffold",
+    [scaffoldCmd, [...scaffoldArgs, ...scaffoldFlagsFor(args.toolchain)]],
+    cwd
+  );
   const appDir = resolvedTarget;
   if (args.pm === "pnpm") {
     run("install (pre-approval)", pm.install(), appDir, {
@@ -401,7 +394,7 @@ function main() {
     });
     run(
       "approve builds",
-      ["pnpm", ["approve-builds", "sharp", "unrs-resolver"]],
+      ["pnpm", ["approve-builds", "--all"]],
       appDir
     );
   }
@@ -439,16 +432,17 @@ if (isMain) {
   main();
 }
 export {
+  BASE_SCAFFOLD_FLAGS,
   MIN_CACHE_COMPONENTS_VERSION,
   OXFMT_CONFIG,
   OXLINT_CONFIG,
   PM_COMMANDS,
-  SCAFFOLD_FLAGS,
   TOOLCHAINS,
   buildBiomeConfig,
   findMatchingBrace,
   insertCacheComponents,
   meetsMinimumVersion,
   parseArgs,
-  parseVersionTriple
+  parseVersionTriple,
+  scaffoldFlagsFor
 };

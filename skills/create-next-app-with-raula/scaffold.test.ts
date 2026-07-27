@@ -10,6 +10,7 @@ import {
 	PM_COMMANDS,
 	parseArgs,
 	parseVersionTriple,
+	scaffoldFlagsFor,
 } from "./scaffold";
 
 describe("parseArgs", () => {
@@ -60,12 +61,11 @@ describe("parseArgs", () => {
 });
 
 describe("PM_COMMANDS", () => {
-	test("every package manager defines all six command builders", () => {
+	test("every package manager defines all five command builders", () => {
 		for (const [pm, commands] of Object.entries(PM_COMMANDS)) {
 			expect(typeof commands.scaffold).toBe("function");
 			expect(typeof commands.install).toBe("function");
 			expect(typeof commands.addExactDev).toBe("function");
-			expect(typeof commands.removeDev).toBe("function");
 			expect(typeof commands.runBin).toBe("function");
 			expect(typeof commands.runScript).toBe("function");
 			expect(commands.install()[0]).toBe(pm === "npm" ? "npm" : pm);
@@ -107,24 +107,17 @@ describe("PM_COMMANDS", () => {
 			],
 		]);
 	});
+});
 
-	test("removeDev uses each package manager's own uninstall verb", () => {
-		expect(PM_COMMANDS.pnpm.removeDev(["eslint"])).toEqual([
-			"pnpm",
-			["remove", "eslint"],
-		]);
-		expect(PM_COMMANDS.npm.removeDev(["eslint"])).toEqual([
-			"npm",
-			["uninstall", "eslint"],
-		]);
-		expect(PM_COMMANDS.yarn.removeDev(["eslint"])).toEqual([
-			"yarn",
-			["remove", "eslint"],
-		]);
-		expect(PM_COMMANDS.bun.removeDev(["eslint"])).toEqual([
-			"bun",
-			["remove", "eslint"],
-		]);
+describe("scaffoldFlagsFor", () => {
+	test("passes --eslint for the eslint toolchain", () => {
+		expect(scaffoldFlagsFor("eslint")).toContain("--eslint");
+		expect(scaffoldFlagsFor("eslint")).not.toContain("--no-eslint");
+	});
+
+	test("passes --no-eslint for the oxlint toolchain", () => {
+		expect(scaffoldFlagsFor("oxlint")).toContain("--no-eslint");
+		expect(scaffoldFlagsFor("oxlint")).not.toContain("--eslint");
 	});
 });
 

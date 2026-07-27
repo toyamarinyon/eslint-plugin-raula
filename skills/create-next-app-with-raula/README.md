@@ -98,26 +98,27 @@ node dist/scaffold.mjs --dir <target-directory-or-.> --pm <pnpm|npm|yarn|bun> --
 ```
 
 It scaffolds with `create-next-app@<version>` using fixed flags — TypeScript,
-the empty template, App Router, ESLint, Tailwind CSS, React Compiler, and
-`--skip-install`. ESLint is always part of the initial scaffold: create-next-app
-has no non-interactive "no linter" flag, so omitting both `--eslint` and
-`--biome` still installs ESLint from saved/default preferences.
+the empty template, App Router, Tailwind CSS, React Compiler, and
+`--skip-install` — plus `--eslint` or `--no-eslint` depending on the
+toolchain.
 
-For the **`eslint`** toolchain, the script deliberately omits
-`--biome`: `create-next-app` treats "linter" as a single choice between
-ESLint and Biome, so passing both flags together silently drops Biome (no
-`biome.json`, no dependency, no format script). Biome is set up separately
-as a **formatter only** — its own linter is disabled in the generated
-`biome.json` — so ESLint(+raula) keeps owning linting with no overlap. It
-installs dependencies (approving `sharp` and `unrs-resolver` build scripts
-first if the package manager is pnpm), adds `eslint-plugin-raula` as an
-exact dev dependency and runs its own installer (`eslint-plugin-raula install
---eslint --agents-md`), and adds `@biomejs/biome` as an exact dev dependency
-and writes `biome.json` plus a `format` script.
+For the **`eslint`** toolchain, the script scaffolds with `--eslint` and
+deliberately omits `--biome`: `create-next-app` treats "linter" as a single
+choice between ESLint and Biome, so passing both flags together silently
+drops Biome (no `biome.json`, no dependency, no format script). Biome is set
+up separately as a **formatter only** — its own linter is disabled in the
+generated `biome.json` — so ESLint(+raula) keeps owning linting with no
+overlap. It installs dependencies (approving `sharp` and `unrs-resolver`
+build scripts first if the package manager is pnpm), adds
+`eslint-plugin-raula` as an exact dev dependency and runs its own installer
+(`eslint-plugin-raula install --eslint --agents-md`), and adds
+`@biomejs/biome` as an exact dev dependency and writes `biome.json` plus a
+`format` script.
 
-For the **`oxlint`** toolchain (default), the script removes the ESLint that
-create-next-app just installed (`eslint`, `eslint-config-next`,
-`eslint.config.mjs`), adds `oxlint`, `oxlint-plugin-raula`, `stylelint`,
+For the **`oxlint`** toolchain (default), the script scaffolds with
+`--no-eslint` — confirmed by testing the CLI that this skips ESLint
+entirely (no `eslint.config.mjs`, no `eslint`/`eslint-config-next` deps, no
+`lint` script) — then adds `oxlint`, `oxlint-plugin-raula`, `stylelint`,
 `stylelint-plugin-raula`, and `oxfmt` as exact dev dependencies, writes
 `.oxlintrc.json` extending `oxlint-plugin-raula`'s shareable preset, writes a
 minimal `stylelint.config.mjs` and runs `stylelint-plugin-raula install
