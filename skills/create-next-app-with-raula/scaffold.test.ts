@@ -4,6 +4,7 @@ import {
 	findMatchingBrace,
 	insertCacheComponents,
 	MIN_CACHE_COMPONENTS_VERSION,
+	MINIMUM_RELEASE_AGE_EXCLUDE,
 	meetsMinimumVersion,
 	OXFMT_CONFIG,
 	OXLINT_CONFIG,
@@ -11,6 +12,7 @@ import {
 	parseArgs,
 	parseVersionTriple,
 	scaffoldFlagsFor,
+	withMinimumReleaseAgeExclude,
 } from "./scaffold";
 
 describe("parseArgs", () => {
@@ -18,29 +20,31 @@ describe("parseArgs", () => {
 		expect(parseArgs([])).toEqual({
 			dir: ".",
 			pm: "pnpm",
-			nextVersion: "latest",
 			toolchain: "oxlint",
 		});
 	});
 
-	test("parses all four flags", () => {
+	test("parses all three flags", () => {
 		expect(
 			parseArgs([
 				"--dir",
 				"./my-app",
 				"--pm",
 				"npm",
-				"--next-version",
-				"preview",
 				"--toolchain",
 				"eslint",
 			]),
 		).toEqual({
 			dir: "./my-app",
 			pm: "npm",
-			nextVersion: "preview",
 			toolchain: "eslint",
 		});
+	});
+
+	test("rejects --next-version — the Next.js version is pinned, not configurable", () => {
+		expect(() => parseArgs(["--next-version", "latest"])).toThrow(
+			"Unknown argument: --next-version",
+		);
 	});
 
 	test("rejects an unsupported package manager", () => {
@@ -230,6 +234,34 @@ export default nextConfig;
 	test("skips when the config object cannot be found", () => {
 		const result = insertCacheComponents("export default function () {}");
 		expect(result.status).toBe("skipped");
+	});
+});
+
+describe("withMinimumReleaseAgeExclude", () => {
+	test("prepends the exclude list ahead of the existing content", () => {
+		const source = `allowBuilds:\n  sharp: false\n`;
+		expect(
+			withMinimumReleaseAgeExclude(source, [
+				"oxlint-plugin-raula",
+				"stylelint-plugin-raula",
+			]),
+		).toBe(
+			[
+				"# Packages maintained by this project's author — exclude them from the",
+				"# minimumReleaseAge check so a just-published version can still install.",
+				"minimumReleaseAgeExclude:",
+				"  - oxlint-plugin-raula",
+				"  - stylelint-plugin-raula",
+				"",
+			].join("\n") + source,
+		);
+	});
+
+	test("MINIMUM_RELEASE_AGE_EXCLUDE lists exactly the raula packages this skill installs", () => {
+		expect(MINIMUM_RELEASE_AGE_EXCLUDE).toEqual([
+			"oxlint-plugin-raula",
+			"stylelint-plugin-raula",
+		]);
 	});
 });
 

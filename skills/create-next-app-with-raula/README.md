@@ -62,19 +62,22 @@ directory is the project directory.
 
 ### Supported inputs
 
-The skill supports exactly four user-configurable inputs:
+The skill supports exactly three user-configurable inputs:
 
 | Input | Accepted values | Default |
 |---|---|---|
 | Target directory | A directory path | `.` |
 | Package manager | `pnpm`, `npm`, `yarn`, or `bun` | `pnpm` |
-| Next.js version | A dist-tag such as `latest`, `preview`, or `canary`, or an exact version | `latest` |
 | Lint/format toolchain | `oxlint` (oxlint-plugin-raula + stylelint-plugin-raula + oxfmt) or `eslint` (eslint-plugin-raula + Biome) | `oxlint` |
+
+The Next.js version is not configurable — the script always scaffolds with
+`create-next-app@preview`. See "Why `preview`" in [SKILL.md](./SKILL.md) for
+the reasoning.
 
 For example:
 
 ```text
-create a Next.js preview app with raula in ./my-app using bun
+create a Next.js app with raula in ./my-app using bun
 ```
 
 ```text
@@ -85,19 +88,19 @@ All other scaffold choices are fixed by the skill.
 
 ## Workflow
 
-The agent's job is to pick the target directory, package manager, Next.js
-version, and toolchain, decide whether an existing target directory is safe
-to scaffold into, then run a deterministic script — the built
-`dist/scaffold.mjs`, next to the skill — and independently verify the result
-before reporting back. The script, not agent-improvised shell commands, owns
-every package-manager-specific command and every config-file edit, so
-re-runs are consistent regardless of which model invokes the skill.
+The agent's job is to pick the target directory, package manager, and
+toolchain, decide whether an existing target directory is safe to scaffold
+into, then run a deterministic script — the built `dist/scaffold.mjs`, next
+to the skill — and independently verify the result before reporting back.
+The script, not agent-improvised shell commands, owns every
+package-manager-specific command and every config-file edit, so re-runs are
+consistent regardless of which model invokes the skill.
 
 ```bash
-node dist/scaffold.mjs --dir <target-directory-or-.> --pm <pnpm|npm|yarn|bun> --next-version <tag-or-version> --toolchain <eslint|oxlint>
+node dist/scaffold.mjs --dir <target-directory-or-.> --pm <pnpm|npm|yarn|bun> --toolchain <eslint|oxlint>
 ```
 
-It scaffolds with `create-next-app@<version>` using fixed flags — TypeScript,
+It scaffolds with `create-next-app@preview` using fixed flags — TypeScript,
 the empty template, App Router, Tailwind CSS, React Compiler, and
 `--skip-install` — plus `--eslint` or `--no-eslint` depending on the
 toolchain.
@@ -130,10 +133,11 @@ Components (below) is this toolchain's only guard against that class of bug.
 
 Regardless of toolchain, the script checks the *resolved* Next.js version and
 adds `cacheComponents: true` to `next.config.ts` when it's `16.3.0` or later
-(this is additive to `eslint-plugin-raula`'s own `no-await-in-layout` rule,
-not a replacement — Cache Components catches a broader class of
-blocking-render issues at build time), runs `lint` (and, for `oxlint`,
-`lint:css`) then `format`, and commits everything as `initialized raula`.
+— with the `preview` pin this should always be true — (this is additive to
+`eslint-plugin-raula`'s own `no-await-in-layout` rule, not a replacement —
+Cache Components catches a broader class of blocking-render issues at build
+time), runs `lint` (and, for `oxlint`, `lint:css`) then `format`, and commits
+everything as `initialized raula`.
 
 ## Development
 

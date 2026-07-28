@@ -144,6 +144,18 @@ export const MIN_CACHE_COMPONENTS_VERSION: [number, number, number] = [
 	16, 3, 0,
 ];
 
+// Pinned rather than a user-configurable dist-tag: `latest` currently
+// resolves to a create-next-app build cut before Next.js's pnpm-v11
+// `allowBuilds` migration (vercel/next.js#94544), so it still writes the
+// old `ignoredBuiltDependencies` list — a format pnpm 11 no longer
+// understands, which surfaces as a spurious `ERR_PNPM_IGNORED_BUILDS`
+// failure. `preview` already has the fix, and its resolved Next.js version
+// also clears MIN_CACHE_COMPONENTS_VERSION, so Cache Components reliably
+// gets enabled too. Supporting both tags long-term means carrying two
+// divergent pnpm-workspace.yaml stories, so this skill only ever scaffolds
+// against `preview`.
+export const NEXT_VERSION_TAG = "preview";
+
 export type Toolchain = "eslint" | "oxlint";
 
 export const TOOLCHAINS: Toolchain[] = ["eslint", "oxlint"];
@@ -151,7 +163,6 @@ export const TOOLCHAINS: Toolchain[] = ["eslint", "oxlint"];
 export type ScaffoldArgs = {
 	dir: string;
 	pm: PackageManager;
-	nextVersion: string;
 	toolchain: Toolchain;
 };
 
@@ -159,7 +170,6 @@ export function parseArgs(argv: string[]): ScaffoldArgs {
 	const args: ScaffoldArgs = {
 		dir: ".",
 		pm: "pnpm",
-		nextVersion: "latest",
 		toolchain: "oxlint",
 	};
 	for (let i = 0; i < argv.length; i += 1) {
@@ -168,8 +178,6 @@ export function parseArgs(argv: string[]): ScaffoldArgs {
 			args.dir = argv[++i] ?? "";
 		} else if (arg === "--pm") {
 			args.pm = (argv[++i] ?? "") as PackageManager;
-		} else if (arg === "--next-version") {
-			args.nextVersion = argv[++i] ?? "";
 		} else if (arg === "--toolchain") {
 			args.toolchain = (argv[++i] ?? "") as Toolchain;
 		} else {
@@ -389,6 +397,49 @@ function updatePackageJsonScripts(
 	);
 }
 
+// Packages this skill's author also maintains and publishes. A build of one
+// of these can be installed within minutes of publishing (see
+// addExactDev/runBin/runScript's `--config.minimumReleaseAge=0` below), so
+// they're excluded from pnpm's minimumReleaseAge supply-chain check up
+// front instead of relying solely on per-command overrides.
+export const MINIMUM_RELEASE_AGE_EXCLUDE = [
+	"oxlint-plugin-raula",
+	"stylelint-plugin-raula",
+];
+
+export function withMinimumReleaseAgeExclude(
+	source: string,
+	packages: string[],
+): string {
+	const block = [
+		"# Packages maintained by this project's author — exclude them from the",
+		"# minimumReleaseAge check so a just-published version can still install.",
+		"minimumReleaseAgeExclude:",
+		...packages.map((pkg) => `  - ${pkg}`),
+		"",
+	].join("\n");
+	return `${block}${source}`;
+}
+
+function addMinimumReleaseAgeExclude(appDir: string): void {
+	const workspacePath = path.join(appDir, "pnpm-workspace.yaml");
+	if (!fs.existsSync(workspacePath)) {
+		console.warn(
+			"pnpm-workspace.yaml not found, skipping minimumReleaseAgeExclude.",
+		);
+		return;
+	}
+	const source = fs.readFileSync(workspacePath, "utf8");
+	fs.writeFileSync(
+		workspacePath,
+		withMinimumReleaseAgeExclude(source, MINIMUM_RELEASE_AGE_EXCLUDE),
+		"utf8",
+	);
+	console.log(
+		`Added minimumReleaseAgeExclude for: ${MINIMUM_RELEASE_AGE_EXCLUDE.join(", ")}.`,
+	);
+}
+
 export const OXLINT_CONFIG = {
 	extends: ["./node_modules/oxlint-plugin-raula/.oxlintrc.json"],
 };
@@ -478,7 +529,7 @@ function setUpOxlintToolchain(pm: PmCommands, appDir: string): void {
 function main(): void {
 	const args = parseArgs(process.argv.slice(2));
 	const pm = PM_COMMANDS[args.pm];
-	const createNextAppPackage = `create-next-app@${args.nextVersion}`;
+	const createNextAppPackage = `create-next-app@${NEXT_VERSION_TAG}`;
 	const cwd = process.cwd();
 	const resolvedTarget = path.resolve(cwd, args.dir);
 
@@ -495,6 +546,8 @@ function main(): void {
 	const appDir = resolvedTarget;
 
 	if (args.pm === "pnpm") {
+		addMinimumReleaseAgeExclude(appDir);
+
 		// A fresh install always reports ignored build scripts and exits
 		// non-zero — and `pnpm approve-builds` has nothing to approve until a
 		// lockfile exists flagging them as pending. So: install once

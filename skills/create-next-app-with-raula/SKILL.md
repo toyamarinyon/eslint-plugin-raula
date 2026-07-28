@@ -1,6 +1,6 @@
 ---
 name: create-next-app-with-raula
-description: "Scaffold a new Next.js application with create-next-app in a user-specified directory or, when no target path is given, the current directory; then wire up a raula lint/format toolchain (oxlint-plugin-raula + stylelint-plugin-raula + oxfmt by default, or eslint-plugin-raula + Biome), enable Cache Components when supported, run lint and format, and commit the initialized app. Supports selecting pnpm, npm, yarn, or bun, a Next.js release tag or exact version, and the toolchain. Use when the user asks to start, create, bootstrap, or initialize a Next.js app with raula/eslint-plugin-raula."
+description: "Scaffold a new Next.js application with create-next-app in a user-specified directory or, when no target path is given, the current directory; then wire up a raula lint/format toolchain (oxlint-plugin-raula + stylelint-plugin-raula + oxfmt by default, or eslint-plugin-raula + Biome), enable Cache Components when supported, run lint and format, and commit the initialized app. Supports selecting pnpm, npm, yarn, or bun, and the toolchain. Use when the user asks to start, create, bootstrap, or initialize a Next.js app with raula/eslint-plugin-raula."
 ---
 
 # Create Next App With Raula
@@ -13,52 +13,68 @@ Support exactly these user-configurable inputs:
 |---|---|---|
 | Target directory | A directory path | `.` |
 | Package manager | `pnpm`, `npm`, `yarn`, or `bun` | `pnpm` |
-| Next.js version | An npm dist-tag such as `latest`, `preview`, or `canary`, or an exact version such as `16.3.0-preview.6` | `latest` |
 | Lint/format toolchain | `oxlint` (oxlint-plugin-raula + stylelint-plugin-raula + oxfmt) or `eslint` (eslint-plugin-raula + Biome) | `oxlint` |
 
 When asked what this skill supports or what can be configured, answer from this table. Treat all other setup choices as fixed by this skill; do not offer them as configurable inputs.
+
+The Next.js version is **not** user-configurable: the script always scaffolds with `create-next-app@preview` (`NEXT_VERSION_TAG` in `scaffold.ts`). See "Why `preview`, not `latest`" below before changing this.
 
 ## Workflow
 
 The actual setup is a deterministic script (`dist/scaffold.mjs`, the built artifact in this skill's directory — source is `scaffold.ts`, see Development below) — not a sequence of commands for you to improvise. Your job is the judgment calls around it:
 
-1. Determine the four supported inputs before running the script:
+1. Determine the three supported inputs before running the script:
    - If the user names a package manager (pnpm, npm, yarn, bun), use it. Otherwise default to pnpm.
    - If the user gives a path, use it as the target directory. If not, use `.` (the current working directory).
-   - If the user gives a Next.js dist-tag or exact version, use it. Otherwise default to `latest`.
    - If the user asks for eslint, Biome, or explicitly says they don't want oxlint/stylelint/oxfmt, use `eslint`. Otherwise default to `oxlint` — this skill is opinionated and oxlint is the preferred toolchain.
    - Do not ask for a project name. The target directory is the project directory.
+   - Do not offer a Next.js version choice — it's pinned (see above).
 2. Before scaffolding into an existing directory, inspect it. If it contains files unrelated to this setup, stop and ask the user whether to continue, choose another directory, or clean it up. The script does not make this judgment call for you — it will happily scaffold into (and its `create-next-app` step may fail loudly inside) a directory that isn't empty.
 3. Run the script from this skill's own directory:
 
    ```bash
-   node dist/scaffold.mjs --dir <target-directory-or-.> --pm <pnpm|npm|yarn|bun> --next-version <tag-or-version> --toolchain <eslint|oxlint>
+   node dist/scaffold.mjs --dir <target-directory-or-.> --pm <pnpm|npm|yarn|bun> --toolchain <eslint|oxlint>
    ```
 
 4. After it finishes, independently verify the result yourself — don't just trust the script's own output:
    - Read `git show --stat HEAD` (the script already prints this, but re-check it) and skim the diff for anything unexpected.
    - For the `eslint` toolchain: confirm `package.json` has a `lint` script (ESLint) and a `format` script (Biome).
    - For the `oxlint` toolchain: confirm `eslint.config.mjs` is gone, and `package.json` has `lint` (oxlint), `lint:css` (stylelint), and `format` (oxfmt) scripts.
-   - If the resolved Next.js version is `16.3.0` or later, confirm `next.config.ts` has `cacheComponents: true`.
-5. Report the result to the user in plain prose: what was created, which package manager, Next.js version, and toolchain were used, and anything the script skipped (e.g. Cache Components on an older Next.js version) or warned about.
+   - Confirm `next.config.ts` has `cacheComponents: true` (the resolved `preview` version should always clear `16.3.0`).
+5. Report the result to the user in plain prose: what was created, which package manager and toolchain were used, and anything the script skipped or warned about.
 
 If the script fails partway through, read its output to find the failed step, fix the concrete problem in the generated app (partial installs, a network hiccup, an incompatible flag), then re-run the script — it is safe to re-run: package installs and the `eslint-plugin-raula`/`stylelint-plugin-raula`/config edits are idempotent, and steps that already ran will just report "already up to date" or overwrite deterministically. Don't recreate the project from scratch unless the user asks for a clean retry.
 
 ### What the script does, and why it's not just the plain create-next-app flags
 
-The script scaffolds with `create-next-app@<version>` using fixed flags (TypeScript, empty template, App Router, Tailwind CSS, React Compiler, `--skip-install`) plus either `--eslint` or `--no-eslint` depending on the toolchain — do not change these unless the user explicitly asks to modify the skill itself. What happens next depends on the toolchain:
+The script scaffolds with `create-next-app@preview` using fixed flags (TypeScript, empty template, App Router, Tailwind CSS, React Compiler, `--skip-install`) plus either `--eslint` or `--no-eslint` depending on the toolchain — do not change these unless the user explicitly asks to modify the skill itself. What happens next depends on the toolchain:
 
 **`eslint`.** Scaffolds with `--eslint`. The script deliberately does **not** also pass `--biome`: create-next-app treats "linter" as a single choice between ESLint and Biome, so passing both flags together silently drops Biome (no `biome.json`, no dependency, no format script). Biome is set up separately, as a **formatter only** (its own linter is disabled in the generated `biome.json`), so ESLint(+raula) keeps owning linting and Biome owns formatting, with no overlap. The script installs dependencies (approving `sharp`/`unrs-resolver` build scripts first if the package manager is pnpm), adds `eslint-plugin-raula` as an exact dev dependency and runs its own installer (`eslint-plugin-raula install --eslint --agents-md`), adds `@biomejs/biome` as an exact dev dependency and writes `biome.json` (schema version matched to whatever actually got installed) plus a `format` script.
 
 **`oxlint` (default).** Scaffolds with `--no-eslint` — confirmed by testing the actual CLI that this skips ESLint entirely (no `eslint.config.mjs`, no `eslint`/`eslint-config-next` deps, no `lint` script), so there's nothing to strip afterward. The script adds `oxlint`, `oxlint-plugin-raula`, `stylelint`, `stylelint-plugin-raula`, and `oxfmt` as exact dev dependencies. It writes `.oxlintrc.json` extending `oxlint-plugin-raula`'s shareable preset, writes a minimal `stylelint.config.mjs` and runs `stylelint-plugin-raula install --stylelint --agents-md` to wire up the CSS preset and AGENTS.md (`oxlint-plugin-raula` has no installer yet, so its config is hand-written), writes `.oxfmtrc.jsonc` (tabs, standard import sorting), and sets `lint` to `oxlint`, `lint:css` to `stylelint 'app/**/*.css'`, and `format` to `oxfmt`. `no-await-in-layout` isn't ported to `oxlint-plugin-raula` — see its README — so Cache Components (below) is this toolchain's only guard against that class of bug.
 
-Regardless of toolchain, the script also checks the *resolved* Next.js version in `package.json` (not the dist-tag you asked for) and adds `cacheComponents: true` to `next.config.ts` if it's `16.3.0` or later, runs `lint` (and, for `oxlint`, `lint:css`) then `format`, and commits everything as `initialized raula`.
+Regardless of toolchain, the script also checks the *resolved* Next.js version in `package.json` and adds `cacheComponents: true` to `next.config.ts` if it's `16.3.0` or later — with the `preview` pin this should always be true — runs `lint` (and, for `oxlint`, `lint:css`) then `format`, and commits everything as `initialized raula`.
 
 `eslint-plugin-raula` still ships its own `no-await-in-layout` rule; this skill doesn't touch that. Enabling Cache Components is additive — it catches a broader class of blocking-render issues at build time (any uncached data access, not just `await` in a layout), not a replacement for the lint rule.
 
+### Why `preview`
+
+`create-next-app@latest` and `create-next-app@preview` currently disagree on how they set up pnpm's build-script approvals, and only one of them is consistent with this script's assumptions:
+
+- `latest` resolves to a `create-next-app` build cut *before* [vercel/next.js#94544](https://github.com/vercel/next.js/pull/94544) (merged 2026-06-08), so it writes the old `ignoredBuiltDependencies` list to `pnpm-workspace.yaml` — a field pnpm 11 no longer honors. A fresh `pnpm install` against that then fails with a spurious `[ERR_PNPM_IGNORED_BUILDS]` for `sharp`.
+- `preview` (currently resolving to Next 16.3.0-preview.x) already has that fix: it writes the new `allowBuilds` map directly, with `sharp: false` and `unrs-resolver: false`. That's the **correct, intentional** default per the PR's own comments — sharp already ships prebuilt binaries for every platform next-swc supports, and unrs-resolver's build script is [only needed for legacy npm](https://github.com/unrs/unrs-resolver/issues/193#issuecomment-3295510146), not pnpm. Never "fix" these to `true`; that works against Next.js's own stated reasoning.
+- `preview`'s resolved Next.js version also always clears `MIN_CACHE_COMPONENTS_VERSION` (`16.3.0`), so Cache Components reliably gets enabled.
+
+The script pins to `preview` rather than exposing a version choice so it only ever has to reason about one `pnpm-workspace.yaml` story.
+
 ### A note on freshly published raula packages
 
-If `eslint-plugin-raula`, `oxlint-plugin-raula`, or `stylelint-plugin-raula` was published very recently, pnpm's supply-chain `minimumReleaseAge` policy can reject it — even after `addExactDev` succeeds, a later plain `pnpm <bin>` or `pnpm <script>` re-checks the lockfile and fails with `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`. The script already works around this for pnpm by passing `--config.minimumReleaseAge=0` on the commands that need it; this is scoped to those individual invocations, not written into the scaffolded app's own config. If you see this error from a manual command you ran outside the script, add the same flag or wait out the cutoff.
+If `eslint-plugin-raula`, `oxlint-plugin-raula`, or `stylelint-plugin-raula` was published very recently, pnpm's supply-chain `minimumReleaseAge` policy can reject it — even after `addExactDev` succeeds, a later plain `pnpm <bin>` or `pnpm <script>` re-checks the lockfile and fails with `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`.
+
+For pnpm, the script handles this two ways:
+
+- `oxlint-plugin-raula` and `stylelint-plugin-raula` — packages this skill's author also maintains and publishes — are listed in `minimumReleaseAgeExclude` in the scaffolded app's own `pnpm-workspace.yaml` (written right after scaffolding, before any install runs). This is a persistent, package-scoped exclusion: pnpm's own supply-chain check treats them as always past the cutoff.
+- Everything else (`eslint-plugin-raula`, and the individual `addExactDev`/`runBin`/`runScript` invocations) still relies on the narrower, per-command `--config.minimumReleaseAge=0` override, since those packages aren't unconditionally trusted the same way. If you see `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION` from a manual command you ran outside the script, add the same flag or wait out the cutoff.
 
 ## Notes
 

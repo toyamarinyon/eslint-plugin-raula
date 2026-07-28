@@ -98,12 +98,12 @@ var MIN_CACHE_COMPONENTS_VERSION = [
   3,
   0
 ];
+var NEXT_VERSION_TAG = "preview";
 var TOOLCHAINS = ["eslint", "oxlint"];
 function parseArgs(argv) {
   const args = {
     dir: ".",
     pm: "pnpm",
-    nextVersion: "latest",
     toolchain: "oxlint"
   };
   for (let i = 0; i < argv.length; i += 1) {
@@ -112,8 +112,6 @@ function parseArgs(argv) {
       args.dir = argv[++i] ?? "";
     } else if (arg === "--pm") {
       args.pm = argv[++i] ?? "";
-    } else if (arg === "--next-version") {
-      args.nextVersion = argv[++i] ?? "";
     } else if (arg === "--toolchain") {
       args.toolchain = argv[++i] ?? "";
     } else {
@@ -296,6 +294,38 @@ function updatePackageJsonScripts(appDir, scripts) {
     "utf8"
   );
 }
+var MINIMUM_RELEASE_AGE_EXCLUDE = [
+  "oxlint-plugin-raula",
+  "stylelint-plugin-raula"
+];
+function withMinimumReleaseAgeExclude(source, packages) {
+  const block = [
+    "# Packages maintained by this project's author \u2014 exclude them from the",
+    "# minimumReleaseAge check so a just-published version can still install.",
+    "minimumReleaseAgeExclude:",
+    ...packages.map((pkg) => `  - ${pkg}`),
+    ""
+  ].join("\n");
+  return `${block}${source}`;
+}
+function addMinimumReleaseAgeExclude(appDir) {
+  const workspacePath = path.join(appDir, "pnpm-workspace.yaml");
+  if (!fs.existsSync(workspacePath)) {
+    console.warn(
+      "pnpm-workspace.yaml not found, skipping minimumReleaseAgeExclude."
+    );
+    return;
+  }
+  const source = fs.readFileSync(workspacePath, "utf8");
+  fs.writeFileSync(
+    workspacePath,
+    withMinimumReleaseAgeExclude(source, MINIMUM_RELEASE_AGE_EXCLUDE),
+    "utf8"
+  );
+  console.log(
+    `Added minimumReleaseAgeExclude for: ${MINIMUM_RELEASE_AGE_EXCLUDE.join(", ")}.`
+  );
+}
 var OXLINT_CONFIG = {
   extends: ["./node_modules/oxlint-plugin-raula/.oxlintrc.json"]
 };
@@ -375,7 +405,7 @@ function setUpOxlintToolchain(pm, appDir) {
 function main() {
   const args = parseArgs(process.argv.slice(2));
   const pm = PM_COMMANDS[args.pm];
-  const createNextAppPackage = `create-next-app@${args.nextVersion}`;
+  const createNextAppPackage = `create-next-app@${NEXT_VERSION_TAG}`;
   const cwd = process.cwd();
   const resolvedTarget = path.resolve(cwd, args.dir);
   const [scaffoldCmd, scaffoldArgs] = pm.scaffold(
@@ -389,6 +419,7 @@ function main() {
   );
   const appDir = resolvedTarget;
   if (args.pm === "pnpm") {
+    addMinimumReleaseAgeExclude(appDir);
     const buildsToApprove = args.toolchain === "eslint" ? ["sharp", "unrs-resolver"] : ["sharp"];
     run("install (pre-approval)", pm.install(), appDir, {
       allowFailure: true
@@ -434,7 +465,9 @@ if (isMain) {
 }
 export {
   BASE_SCAFFOLD_FLAGS,
+  MINIMUM_RELEASE_AGE_EXCLUDE,
   MIN_CACHE_COMPONENTS_VERSION,
+  NEXT_VERSION_TAG,
   OXFMT_CONFIG,
   OXLINT_CONFIG,
   PM_COMMANDS,
@@ -445,5 +478,6 @@ export {
   meetsMinimumVersion,
   parseArgs,
   parseVersionTriple,
-  scaffoldFlagsFor
+  scaffoldFlagsFor,
+  withMinimumReleaseAgeExclude
 };
