@@ -17,7 +17,7 @@ Support exactly these user-configurable inputs:
 
 When asked what this skill supports or what can be configured, answer from this table. Treat all other setup choices as fixed by this skill; do not offer them as configurable inputs.
 
-The Next.js version is **not** user-configurable: the script always scaffolds with `create-next-app@preview` (`NEXT_VERSION_TAG` in `scaffold.ts`). See "Why `preview`, not `latest`" below before changing this.
+The Next.js version is **not** user-configurable: the script always scaffolds with `create-next-app@latest` (`NEXT_VERSION_TAG` in `scaffold.ts`). See "Why `latest`" below before changing this.
 
 ## Workflow
 
@@ -40,32 +40,28 @@ The actual setup is a deterministic script (`dist/scaffold.mjs`, the built artif
    - Read `git show --stat HEAD` (the script already prints this, but re-check it) and skim the diff for anything unexpected.
    - For the `eslint` toolchain: confirm `package.json` has a `lint` script (ESLint) and a `format` script (Biome).
    - For the `oxlint` toolchain: confirm `eslint.config.mjs` is gone, and `package.json` has `lint` (oxlint), `lint:css` (stylelint), and `format` (oxfmt) scripts.
-   - Confirm `next.config.ts` has `cacheComponents: true` (the resolved `preview` version should always clear `16.3.0`).
+   - Confirm `next.config.ts` has `cacheComponents: true` (the resolved `latest` version should always clear `16.3.0`).
 5. Report the result to the user in plain prose: what was created, which package manager and toolchain were used, and anything the script skipped or warned about.
 
 If the script fails partway through, read its output to find the failed step, fix the concrete problem in the generated app (partial installs, a network hiccup, an incompatible flag), then re-run the script — it is safe to re-run: package installs and the `eslint-plugin-raula`/`stylelint-plugin-raula`/config edits are idempotent, and steps that already ran will just report "already up to date" or overwrite deterministically. Don't recreate the project from scratch unless the user asks for a clean retry.
 
 ### What the script does, and why it's not just the plain create-next-app flags
 
-The script scaffolds with `create-next-app@preview` using fixed flags (TypeScript, empty template, App Router, Tailwind CSS, React Compiler, `--skip-install`) plus either `--eslint` or `--no-eslint` depending on the toolchain — do not change these unless the user explicitly asks to modify the skill itself. What happens next depends on the toolchain:
+The script scaffolds with `create-next-app@latest` using fixed flags (TypeScript, empty template, App Router, Tailwind CSS, React Compiler, `--skip-install`) plus either `--eslint` or `--no-eslint` depending on the toolchain — do not change these unless the user explicitly asks to modify the skill itself. What happens next depends on the toolchain:
 
 **`eslint`.** Scaffolds with `--eslint`. The script deliberately does **not** also pass `--biome`: create-next-app treats "linter" as a single choice between ESLint and Biome, so passing both flags together silently drops Biome (no `biome.json`, no dependency, no format script). Biome is set up separately, as a **formatter only** (its own linter is disabled in the generated `biome.json`), so ESLint(+raula) keeps owning linting and Biome owns formatting, with no overlap. The script installs dependencies (approving `sharp`/`unrs-resolver` build scripts first if the package manager is pnpm), adds `eslint-plugin-raula` as an exact dev dependency and runs its own installer (`eslint-plugin-raula install --eslint --agents-md`), adds `@biomejs/biome` as an exact dev dependency and writes `biome.json` (schema version matched to whatever actually got installed) plus a `format` script.
 
 **`oxlint` (default).** Scaffolds with `--no-eslint` — confirmed by testing the actual CLI that this skips ESLint entirely (no `eslint.config.mjs`, no `eslint`/`eslint-config-next` deps, no `lint` script), so there's nothing to strip afterward. The script adds `oxlint`, `oxlint-plugin-raula`, `stylelint`, `stylelint-plugin-raula`, and `oxfmt` as exact dev dependencies. It writes `.oxlintrc.json` extending `oxlint-plugin-raula`'s shareable preset, writes a minimal `stylelint.config.mjs` and runs `stylelint-plugin-raula install --stylelint --agents-md` to wire up the CSS preset and AGENTS.md (`oxlint-plugin-raula` has no installer yet, so its config is hand-written), writes `.oxfmtrc.jsonc` (tabs, standard import sorting), and sets `lint` to `oxlint`, `lint:css` to `stylelint 'app/**/*.css'`, and `format` to `oxfmt`. `no-await-in-layout` isn't ported to `oxlint-plugin-raula` — see its README — so Cache Components (below) is this toolchain's only guard against that class of bug.
 
-Regardless of toolchain, the script also checks the *resolved* Next.js version in `package.json` and adds `cacheComponents: true` to `next.config.ts` if it's `16.3.0` or later — with the `preview` pin this should always be true — runs `lint` (and, for `oxlint`, `lint:css`) then `format`, and commits everything as `initialized raula`.
+Regardless of toolchain, the script also checks the *resolved* Next.js version in `package.json` and adds `cacheComponents: true` to `next.config.ts` if it's `16.3.0` or later — with the `latest` pin this should always be true — runs `lint` (and, for `oxlint`, `lint:css`) then `format`, and commits everything as `initialized raula`.
 
 `eslint-plugin-raula` still ships its own `no-await-in-layout` rule; this skill doesn't touch that. Enabling Cache Components is additive — it catches a broader class of blocking-render issues at build time (any uncached data access, not just `await` in a layout), not a replacement for the lint rule.
 
-### Why `preview`
+### Why `latest`
 
-`create-next-app@latest` and `create-next-app@preview` currently disagree on how they set up pnpm's build-script approvals, and only one of them is consistent with this script's assumptions:
+Next.js 16.3.0 shipped stable on 2026-08-04. Before that, the skill pinned to `create-next-app@preview` instead of `latest`, because the two tags disagreed on pnpm build-script approvals: `latest` resolved to a build cut *before* [vercel/next.js#94544](https://github.com/vercel/next.js/pull/94544) (merged 2026-06-08), so it wrote the old `ignoredBuiltDependencies` list to `pnpm-workspace.yaml` — a field pnpm 11 no longer honors, which fails a fresh `pnpm install` with a spurious `[ERR_PNPM_IGNORED_BUILDS]` for `sharp`. `preview` already carried that fix.
 
-- `latest` resolves to a `create-next-app` build cut *before* [vercel/next.js#94544](https://github.com/vercel/next.js/pull/94544) (merged 2026-06-08), so it writes the old `ignoredBuiltDependencies` list to `pnpm-workspace.yaml` — a field pnpm 11 no longer honors. A fresh `pnpm install` against that then fails with a spurious `[ERR_PNPM_IGNORED_BUILDS]` for `sharp`.
-- `preview` (currently resolving to Next 16.3.0-preview.x) already has that fix: it writes the new `allowBuilds` map directly, with `sharp: false` and `unrs-resolver: false`. That's the **correct, intentional** default per the PR's own comments — sharp already ships prebuilt binaries for every platform next-swc supports, and unrs-resolver's build script is [only needed for legacy npm](https://github.com/unrs/unrs-resolver/issues/193#issuecomment-3295510146), not pnpm. Never "fix" these to `true`; that works against Next.js's own stated reasoning.
-- `preview`'s resolved Next.js version also always clears `MIN_CACHE_COMPONENTS_VERSION` (`16.3.0`), so Cache Components reliably gets enabled.
-
-The script pins to `preview` rather than exposing a version choice so it only ever has to reason about one `pnpm-workspace.yaml` story.
+Now that 16.3.0 is the stable release, `latest` resolves to it and writes the same correct `allowBuilds` map (`sharp: false`, `unrs-resolver: false` — the **correct, intentional** default per the PR's own comments; sharp ships prebuilt binaries for every platform next-swc supports, and unrs-resolver's build script is [only needed for legacy npm](https://github.com/unrs/unrs-resolver/issues/193#issuecomment-3295510146), not pnpm — never "fix" these to `true`). Its resolved Next.js version also always clears `MIN_CACHE_COMPONENTS_VERSION` (`16.3.0`), so Cache Components reliably gets enabled. There's no longer a reason to track a prerelease tag instead of the stable one, so the script pins to `latest`.
 
 ### A note on freshly published raula packages
 

@@ -71,7 +71,7 @@ The skill supports exactly three user-configurable inputs:
 | Lint/format toolchain | `oxlint` (oxlint-plugin-raula + stylelint-plugin-raula + oxfmt) or `eslint` (eslint-plugin-raula + Biome) | `oxlint` |
 
 The Next.js version is not configurable — the script always scaffolds with
-`create-next-app@preview`. See "Why `preview`" in [SKILL.md](./SKILL.md) for
+`create-next-app@latest`. See "Why `latest`" in [SKILL.md](./SKILL.md) for
 the reasoning.
 
 For example:
@@ -100,7 +100,7 @@ consistent regardless of which model invokes the skill.
 node dist/scaffold.mjs --dir <target-directory-or-.> --pm <pnpm|npm|yarn|bun> --toolchain <eslint|oxlint>
 ```
 
-It scaffolds with `create-next-app@preview` using fixed flags — TypeScript,
+It scaffolds with `create-next-app@latest` using fixed flags — TypeScript,
 the empty template, App Router, Tailwind CSS, React Compiler, and
 `--skip-install` — plus `--eslint` or `--no-eslint` depending on the
 toolchain.
@@ -133,7 +133,7 @@ Components (below) is this toolchain's only guard against that class of bug.
 
 Regardless of toolchain, the script checks the *resolved* Next.js version and
 adds `cacheComponents: true` to `next.config.ts` when it's `16.3.0` or later
-— with the `preview` pin this should always be true — (this is additive to
+— with the `latest` pin this should always be true — (this is additive to
 `eslint-plugin-raula`'s own `no-await-in-layout` rule, not a replacement —
 Cache Components catches a broader class of blocking-render issues at build
 time), runs `lint` (and, for `oxlint`, `lint:css`) then `format`, and commits

@@ -98,7 +98,7 @@ var MIN_CACHE_COMPONENTS_VERSION = [
   3,
   0
 ];
-var NEXT_VERSION_TAG = "preview";
+var NEXT_VERSION_TAG = "latest";
 var TOOLCHAINS = ["eslint", "oxlint"];
 function parseArgs(argv) {
   const args = {

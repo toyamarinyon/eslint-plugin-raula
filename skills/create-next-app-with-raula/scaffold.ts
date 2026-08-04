@@ -144,17 +144,15 @@ export const MIN_CACHE_COMPONENTS_VERSION: [number, number, number] = [
 	16, 3, 0,
 ];
 
-// Pinned rather than a user-configurable dist-tag: `latest` currently
-// resolves to a create-next-app build cut before Next.js's pnpm-v11
-// `allowBuilds` migration (vercel/next.js#94544), so it still writes the
-// old `ignoredBuiltDependencies` list — a format pnpm 11 no longer
-// understands, which surfaces as a spurious `ERR_PNPM_IGNORED_BUILDS`
-// failure. `preview` already has the fix, and its resolved Next.js version
-// also clears MIN_CACHE_COMPONENTS_VERSION, so Cache Components reliably
-// gets enabled too. Supporting both tags long-term means carrying two
-// divergent pnpm-workspace.yaml stories, so this skill only ever scaffolds
-// against `preview`.
-export const NEXT_VERSION_TAG = "preview";
+// Pinned rather than a user-configurable dist-tag. Next.js 16.3.0 shipped
+// stable on 2026-08-04, carrying forward the pnpm-v11 `allowBuilds`
+// migration (vercel/next.js#94544) that `preview` had already picked up, so
+// `latest` now writes the same `allowBuilds` map and clears
+// MIN_CACHE_COMPONENTS_VERSION too — no more reason to track `preview`
+// instead of the stable tag. Verified directly: `create-next-app@latest`
+// resolves to Next 16.3.0 and writes `allowBuilds` (not the old
+// `ignoredBuiltDependencies` list) to pnpm-workspace.yaml.
+export const NEXT_VERSION_TAG = "latest";
 
 export type Toolchain = "eslint" | "oxlint";
 
